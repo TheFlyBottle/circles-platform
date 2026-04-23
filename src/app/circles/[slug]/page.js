@@ -116,6 +116,16 @@ export default function RegistrationForm({ params }) {
     );
   }
 
+  let dotColor = 'var(--success)';
+  if (circle.capacity > 0) {
+    const ratio = circle.currentRegistrations / circle.capacity;
+    if (ratio >= 0.85) {
+      dotColor = 'var(--danger)';
+    } else if (ratio >= 0.5) {
+      dotColor = '#d97706'; // Muted amber/yellow
+    }
+  }
+
   return (
     <div className="card animate-fade-in" style={{ maxWidth: '800px', margin: '2rem auto' }}>
       <Link href="/circles" style={{ display: 'inline-block', marginBottom: '2rem', color: 'var(--text-secondary)', position: 'relative', zIndex: 1 }}>
@@ -128,7 +138,7 @@ export default function RegistrationForm({ params }) {
         <h2 className="font-serif" style={{ color: 'var(--accent-primary)', marginBottom: '0.5rem', fontSize: '2rem' }}>{circle.titleEn || circle.name}</h2>
         <h3 className="font-sans dir-rtl" style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontWeight: 300 }}>{circle.titleFa}</h3>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'var(--background)', padding: '0.5rem 1rem', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
-          <div className="motif-circle"></div>
+          <div className="motif-circle" style={{ backgroundColor: dotColor }}></div>
           <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
             {circle.capacity > 0 ? `${circle.currentRegistrations} / ${circle.capacity} Spots Filled` : 'Unlimited Spots'}
           </span>

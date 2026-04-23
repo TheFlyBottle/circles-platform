@@ -9,14 +9,6 @@
       "telegramLink": ""
     },
     {
-      "_id": "1776789901597",
-      "name": "shahnameh khani",
-      "slug": "shahnameh-khani",
-      "status": "active",
-      "capacity": 20,
-      "telegramLink": ""
-    },
-    {
       "_id": "1776789976500",
       "name": "circle 2",
       "slug": "circle-2",
@@ -37,7 +29,7 @@
       "name": "شاهنامه خوانی",
       "slug": "shahnamekhani",
       "status": "active",
-      "capacity": 0,
+      "capacity": 5,
       "telegramLink": "https://t.me/+O_6yMjoio1Q2ZWRk"
     }
   ],
@@ -52,23 +44,6 @@
       "fieldOfStudy": "Philosophy",
       "notified": false,
       "createdAt": "2026-04-21T16:44:48.961Z"
-    },
-    {
-      "_id": "1776794850782",
-      "fullName": "Diba Makki",
-      "email": "diba.mak@gmail.com",
-      "country": "Canada",
-      "educationLevel": "Others",
-      "fieldOfStudy": "CS",
-      "interestedSubjects": [
-        "اقتصاد Economy",
-        "تاریخ History",
-        "سایر هنرها Other Arts"
-      ],
-      "agreedToCodeOfConduct": true,
-      "circleId": "1776789901597",
-      "notified": false,
-      "createdAt": "2026-04-21T18:07:30.782Z"
     },
     {
       "_id": "1776874483419",
@@ -153,6 +128,22 @@
       "circleId": "1776959745080",
       "notified": true,
       "createdAt": "2026-04-23T16:07:28.471Z"
+    },
+    {
+      "_id": "1776961699167",
+      "fullName": "Diba Makki",
+      "email": "diba.makki@theflybottle.com",
+      "country": "Canada",
+      "educationLevel": "N/A",
+      "fieldOfStudy": "N/A",
+      "interestedSubjects": [
+        "اقتصاد Economy",
+        "انسانشناسی Anthropology"
+      ],
+      "agreedToCodeOfConduct": true,
+      "circleId": "1776959745080",
+      "notified": true,
+      "createdAt": "2026-04-23T16:28:19.167Z"
     }
   ]
 }
