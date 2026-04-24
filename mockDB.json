@@ -21,15 +21,15 @@
       "name": "Iran History ",
       "slug": "iran-history",
       "status": "closed",
-      "capacity": 3,
+      "capacity": 4,
       "telegramLink": "https://t.me/+O_6yMjoio1Q2ZWRk"
     },
     {
       "_id": "1776959745080",
       "name": "شاهنامه خوانی",
       "slug": "shahnamekhani",
-      "status": "active",
-      "capacity": 5,
+      "status": "closed",
+      "capacity": 6,
       "telegramLink": "https://t.me/+O_6yMjoio1Q2ZWRk"
     }
   ],
@@ -144,6 +144,72 @@
       "circleId": "1776959745080",
       "notified": true,
       "createdAt": "2026-04-23T16:28:19.167Z"
+    },
+    {
+      "_id": "1776962630522",
+      "fullName": "Diba Makki",
+      "email": "diba.makki@theflybottle.org",
+      "country": "Canada",
+      "educationLevel": "asas",
+      "fieldOfStudy": "sdfsd",
+      "interestedSubjects": [
+        "انسانشناسی Anthropology",
+        "جامعهشناسی Sociology",
+        "جغرافیا Geography"
+      ],
+      "agreedToCodeOfConduct": true,
+      "circleId": "1776790362094",
+      "notified": true,
+      "createdAt": "2026-04-23T16:43:50.522Z"
+    },
+    {
+      "_id": "1776962796191",
+      "fullName": "Diba Makki",
+      "email": "diba.mak@gmail.com",
+      "country": "Canada",
+      "educationLevel": "jkjfd",
+      "fieldOfStudy": "sfsd",
+      "interestedSubjects": [
+        "اقتصاد Economy",
+        "انسانشناسی Anthropology",
+        "تاریخ History"
+      ],
+      "agreedToCodeOfConduct": true,
+      "circleId": "1776959745080",
+      "notified": true,
+      "createdAt": "2026-04-23T16:46:36.191Z"
+    },
+    {
+      "_id": "1776962812420",
+      "fullName": "sdfsdf",
+      "email": "diba.mak@gmail.com",
+      "country": "Canada",
+      "educationLevel": "sdsdf",
+      "fieldOfStudy": "sdfsd",
+      "interestedSubjects": [
+        "انسانشناسی Anthropology",
+        "تاریخ History"
+      ],
+      "agreedToCodeOfConduct": true,
+      "circleId": "1776959745080",
+      "notified": true,
+      "createdAt": "2026-04-23T16:46:52.420Z"
+    },
+    {
+      "_id": "1776962903899",
+      "fullName": "Diba Makki",
+      "email": "diba.mak@gmail.com",
+      "country": "Canada",
+      "educationLevel": "nhjk",
+      "fieldOfStudy": "ghjh",
+      "interestedSubjects": [
+        "مطالعات دینی Religious Studies",
+        "مطالعات فرهنگی Cultural Studies"
+      ],
+      "agreedToCodeOfConduct": true,
+      "circleId": "1776959745080",
+      "notified": true,
+      "createdAt": "2026-04-23T16:48:23.899Z"
     }
   ]
 }

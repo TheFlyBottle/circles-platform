@@ -20,8 +20,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${vazirmatn.variable} ${lora.variable}`}>
-      <body>
+    <html lang="en" className={`${vazirmatn.variable} ${lora.variable}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <main className="container min-h-screen">
           <header className="main-header" style={{ marginBottom: '4rem', textAlign: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>

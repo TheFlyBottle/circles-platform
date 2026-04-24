@@ -25,23 +25,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) return;
-
-    try {
-      const res = await fetch(`/api/admin/circles/${id}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      
-      // Remove from state
-      setCircles(circles.filter(c => c._id !== id));
-    } catch (err) {
-      alert(`Error deleting circle: ${err.message}`);
-    }
-  };
-
   if (loading) return <div className="text-center mt-8">Loading dashboard...</div>;
 
   return (
@@ -95,14 +78,6 @@ export default function Dashboard() {
                         <Link href={`/admin/circles/${circle._id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
                           Manage
                         </Link>
-                        <button onClick={() => handleDelete(circle._id, circle.name)} className="btn-secondary flex items-center justify-center" style={{ padding: '0.4rem', fontSize: '0.85rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} title="Delete">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                            <line x1="14" y1="11" x2="14" y2="17"></line>
-                          </svg>
-                        </button>
                       </div>
                     </td>
                   </tr>
