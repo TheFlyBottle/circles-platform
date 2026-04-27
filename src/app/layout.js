@@ -1,4 +1,6 @@
 import { Lora, Vazirmatn } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 
 const lora = Lora({ 
@@ -44,6 +46,8 @@ export default function RootLayout({ children }) {
           </header>
           {children}
         </main>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
