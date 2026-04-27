@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -41,6 +42,7 @@ export default function Dashboard() {
       const res = await fetch('/api/admin/logout', { method: 'POST' });
       if (!res.ok) throw new Error('Logout failed.');
 
+      setMenuOpen(false);
       router.push('/admin/login');
       router.refresh();
     } catch (err) {
@@ -55,17 +57,14 @@ export default function Dashboard() {
     <div className="animate-fade-in" style={{ padding: '2rem 0' }}>
       <div className="flex justify-between items-center mb-8">
         <h2 className="font-serif" style={{ color: 'var(--accent-primary)', fontSize: '2rem' }}>Admin Dashboard</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Link href="/admin/circles/new" className="btn-primary">
-            + Create Circle
-          </Link>
+        <div style={{ position: 'relative' }}>
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={() => setMenuOpen((open) => !open)}
             className="btn-secondary"
-            aria-label="Log out"
-            title="Log out"
-            disabled={loggingOut}
+            aria-label="Open admin menu"
+            aria-expanded={menuOpen}
+            title="Admin menu"
             style={{
               width: '42px',
               height: '42px',
@@ -73,16 +72,14 @@ export default function Dashboard() {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: '50%',
-              color: 'var(--danger)',
-              borderColor: 'var(--danger)'
+              borderRadius: '50%'
             }}
           >
             <svg
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -90,18 +87,109 @@ export default function Dashboard() {
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="18" x2="20" y2="18" />
             </svg>
           </button>
+
+          {menuOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 0.5rem)',
+                right: 0,
+                zIndex: 10,
+                minWidth: '210px',
+                padding: '0.5rem',
+                background: 'var(--card-bg)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--border-radius)',
+                boxShadow: '0 16px 32px rgba(45, 45, 45, 0.14)'
+              }}
+            >
+              <Link
+                href="/circles"
+                className="btn-secondary"
+                onClick={() => setMenuOpen(false)}
+                style={{ width: '100%', justifyContent: 'flex-start', marginBottom: '0.5rem' }}
+              >
+                View Client Side
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="btn-secondary"
+                disabled={loggingOut}
+                style={{
+                  width: '100%',
+                  justifyContent: 'flex-start',
+                  color: 'var(--danger)',
+                  borderColor: 'var(--danger)'
+                }}
+              >
+                Log Out
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {menuOpen && (
+        <button
+          type="button"
+          aria-label="Close admin menu"
+          onClick={() => setMenuOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 5,
+            background: 'transparent',
+            border: 0,
+            padding: 0,
+            cursor: 'default'
+          }}
+        />
+      )}
 
       {error && <div className="alert alert-error">{error}</div>}
 
       <div className="card">
-        <h3 className="font-serif" style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Active Circles</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.5rem' }}>
+          <h3 className="font-serif" style={{ fontSize: '1.25rem', margin: 0 }}>Active Circles</h3>
+          <Link
+            href="/admin/circles/new"
+            className="btn-primary"
+            aria-label="Create circle"
+            title="Create circle"
+            style={{
+              width: '38px',
+              height: '38px',
+              padding: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              flex: '0 0 auto'
+            }}
+          >
+            <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </Link>
+        </div>
         {circles.length === 0 ? (
           <p style={{ color: 'var(--text-secondary)' }}>No circles created yet.</p>
         ) : (
