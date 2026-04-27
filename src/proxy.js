@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server';
-import { verifyToken } from './lib/auth';
+
+const ADMIN_EMAILS = new Set([
+  'diba.makki@theflybottle.org',
+  'shadi.seyedi@theflybottle.org',
+  'pouya@theflybottle.org',
+]);
+
+function isValidAdminToken(token) {
+  if (!token?.startsWith('static-admin:')) return false;
+
+  const email = token.slice('static-admin:'.length);
+  return ADMIN_EMAILS.has(email);
+}
 
 export async function proxy(request) {
   const path = request.nextUrl.pathname;
@@ -7,16 +19,22 @@ export async function proxy(request) {
   
   if (path.startsWith('/admin')) {
     const token = request.cookies.get('admin_token')?.value;
+    const hasValidToken = isValidAdminToken(token);
     
-    if (!token && !isPublicPath) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
+    if (!hasValidToken && !isPublicPath) {
+      const response = NextResponse.redirect(new URL('/admin/login', request.url));
+      response.cookies.delete('admin_token');
+      return response;
     }
     
-    if (token) {
-      // Very basic structural check to redirect logged-in users away from auth pages
-      if (isPublicPath) {
-        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-      }
+    if (hasValidToken && isPublicPath) {
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    }
+
+    if (token && !hasValidToken) {
+      const response = NextResponse.next();
+      response.cookies.delete('admin_token');
+      return response;
     }
   }
   

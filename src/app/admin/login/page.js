@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
 export default function Login() {
   const router = useRouter();
@@ -72,11 +71,6 @@ export default function Login() {
           {loading ? 'Authenticating...' : 'Sign In'}
         </button>
       </form>
-      <div className="text-center mt-8" style={{ fontSize: '0.9rem' }}>
-        <Link href="/admin/register" style={{ color: 'var(--text-secondary)' }}>
-          Need an account? <span style={{ color: 'var(--accent-primary)', fontWeight: 500 }}>Register</span>
-        </Link>
-      </div>
     </div>
   );
 }

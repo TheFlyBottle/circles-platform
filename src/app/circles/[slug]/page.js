@@ -26,21 +26,26 @@ export default function RegistrationForm({ params }) {
   const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
-    fetchCircle();
-  }, [slug]);
+    let ignore = false;
 
-  const fetchCircle = async () => {
-    try {
-      const res = await fetch(`/api/circles/${slug}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setCircle(data.circle);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    async function loadCircle() {
+      try {
+        const res = await fetch(`/api/circles/${slug}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        if (!ignore) setCircle(data.circle);
+      } catch (err) {
+        if (!ignore) setError(err.message);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
     }
-  };
+
+    loadCircle();
+    return () => {
+      ignore = true;
+    };
+  }, [slug]);
 
   const handleSubjectChange = (e) => {
     const value = e.target.value;

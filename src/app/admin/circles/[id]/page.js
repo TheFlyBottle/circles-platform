@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from 'react';
+import { useCallback, useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -17,26 +17,50 @@ export default function CircleDetails({ params }) {
   const [capacityInput, setCapacityInput] = useState(0);
   const [deletingId, setDeletingId] = useState(null);
 
-  useEffect(() => {
-    fetchData();
+  const loadCircleData = useCallback(async () => {
+    const res = await fetch(`/api/admin/circles/${id}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    return data;
   }, [id]);
 
-  const fetchData = async () => {
+  const applyCircleData = (data) => {
+    setCircle(data.circle);
+    setSubmissions(data.submissions);
+    setTelegramLink(data.circle.telegramLink || '');
+    setCapacityInput(data.circle.capacity || 0);
+  };
+
+  const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(`/api/admin/circles/${id}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      
-      setCircle(data.circle);
-      setSubmissions(data.submissions);
-      setTelegramLink(data.circle.telegramLink || '');
-      setCapacityInput(data.circle.capacity || 0);
+      const data = await loadCircleData();
+      applyCircleData(data);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [loadCircleData]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadData() {
+      try {
+        const data = await loadCircleData();
+        if (!ignore) applyCircleData(data);
+      } catch (err) {
+        if (!ignore) setError(err.message);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+
+    loadData();
+    return () => {
+      ignore = true;
+    };
+  }, [loadCircleData]);
 
   const handleUpdateLink = async (e) => {
     e.preventDefault();

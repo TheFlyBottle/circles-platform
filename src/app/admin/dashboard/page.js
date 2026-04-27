@@ -9,21 +9,26 @@ export default function Dashboard() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchCircles();
-  }, []);
+    let ignore = false;
 
-  const fetchCircles = async () => {
-    try {
-      const res = await fetch('/api/admin/circles');
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setCircles(data.circles);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    async function loadCircles() {
+      try {
+        const res = await fetch('/api/admin/circles');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        if (!ignore) setCircles(data.circles);
+      } catch (err) {
+        if (!ignore) setError(err.message);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
     }
-  };
+
+    loadCircles();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   if (loading) return <div className="text-center mt-8">Loading dashboard...</div>;
 

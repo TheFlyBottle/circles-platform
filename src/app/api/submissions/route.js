@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getDB, saveDB } from '@/lib/mockDB';
-import { sendConfirmationEmail, sendTelegramInviteEmail } from '@/lib/email';
+import mongoose from 'mongoose';
+import connectMongo from '@/lib/mongodb';
+import Circle from '@/models/Circle';
+import Submission from '@/models/Submission';
+import { sendTelegramInviteEmail } from '@/lib/email';
 
 export async function POST(req) {
   try {
@@ -12,49 +15,51 @@ export async function POST(req) {
     if (!data.agreedToCodeOfConduct) {
         return NextResponse.json({ error: 'You must agree to the code of conduct.' }, { status: 400 });
     }
+    if (!mongoose.Types.ObjectId.isValid(data.circleId)) {
+      return NextResponse.json({ error: 'Circle does not exist.' }, { status: 400 });
+    }
 
-    const db = getDB();
-    const circle = db.circles.find(c => c._id === data.circleId);
+    await connectMongo();
+
+    const circle = await Circle.findById(data.circleId);
     
     if (!circle) return NextResponse.json({ error: 'Circle does not exist.' }, { status: 400 });
 
     if (circle.capacity > 0) {
-        const count = db.submissions.filter(s => s.circleId === circle._id).length;
+        const count = await Submission.countDocuments({ circleId: circle._id });
         if (count >= circle.capacity) {
             return NextResponse.json({ error: 'Registration capacity has been reached.' }, { status: 400 });
         }
     }
 
-    const newSubmission = {
-      _id: Date.now().toString(),
+    const submission = new Submission({
       ...data,
       notified: false,
-      createdAt: new Date().toISOString()
-    };
+    });
 
     const circleName = circle.titleEn || circle.name;
 
     // If telegram link already exists, send invite immediately
     if (circle.telegramLink) {
         await sendTelegramInviteEmail(data.email, data.fullName, circleName, circle.telegramLink);
-        newSubmission.notified = true;
+        submission.notified = true;
     }
 
-    db.submissions.push(newSubmission);
+    await submission.save();
     
     // Auto-close circle if capacity is reached
     if (circle.capacity > 0) {
-        const newCount = db.submissions.filter(s => s.circleId === circle._id).length;
+        const newCount = await Submission.countDocuments({ circleId: circle._id });
         if (newCount >= circle.capacity) {
             circle.status = 'closed';
+            await circle.save();
         }
     }
-
-    saveDB(db);
 
     return NextResponse.json({ success: true, message: 'Registration received successfully.' });
 
   } catch (error) {
+    console.error('Create Submission Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

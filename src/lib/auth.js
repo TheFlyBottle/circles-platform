@@ -1,39 +1,37 @@
-import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const secretKey = process.env.JWT_SECRET || 'fallback-secret-for-development-only';
-const key = new TextEncoder().encode(secretKey);
+export const ADMIN_USERS = [
+  { email: 'diba.makki@theflybottle.org', name: 'Diba Makki' },
+  { email: 'shadi.seyedi@theflybottle.org', name: 'Shadi Seyedi' },
+  { email: 'pouya@theflybottle.org', name: 'Pouya' },
+];
 
-export async function signToken(payload) {
-  return await new SignJWT(payload)
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('24h')
-    .sign(key);
-}
+const ADMIN_PASSWORD = 'TheFlyBottle123';
 
-export async function verifyToken(input) {
-  try {
-    const { payload } = await jwtVerify(input, key, {
-      algorithms: ['HS256'],
-    });
-    return payload;
-  } catch (error) {
+export function validateAdminLogin(email, password) {
+  const normalizedEmail = email?.toLowerCase();
+  const admin = ADMIN_USERS.find((user) => user.email === normalizedEmail);
+
+  if (!admin || password !== ADMIN_PASSWORD) {
     return null;
   }
+
+  return admin;
 }
 
 export async function getSession() {
   const cookieStore = await cookies();
   const session = cookieStore.get('admin_token')?.value;
   if (!session) return null;
-  
-  // MOCK MODE: Return a fake session if the mock token is found
-  if (session === 'mock_passed') {
-    return { adminId: 'mock-123', email: 'mock@theflybottle.org', name: 'Mock Admin' };
-  }
-  
-  return await verifyToken(session);
+
+  const admin = ADMIN_USERS.find((user) => session === `static-admin:${user.email}`);
+  if (!admin) return null;
+
+  return {
+    adminId: admin.email,
+    email: admin.email,
+    name: admin.name,
+  };
 }
 
 export async function clearSession() {
