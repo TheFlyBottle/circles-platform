@@ -31,4 +31,4 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Vercel
 
-circles-platform.vercel.app
+[circles-platform.vercel.app](circles-platform.vercel.app)
