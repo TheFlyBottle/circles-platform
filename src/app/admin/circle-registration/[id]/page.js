@@ -4,7 +4,7 @@ import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function ProposalReviewPage({ params }) {
+export default function RegistrationReviewPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
   const [proposal, setProposal] = useState(null);
@@ -24,7 +24,7 @@ export default function ProposalReviewPage({ params }) {
           return;
         }
         
-        if (!res.ok) throw new Error(data.error || 'Failed to load proposal');
+        if (!res.ok) throw new Error(data.error || 'Failed to load registration');
         
         if (!ignore) setProposal(data.proposal);
       } catch (err) {
@@ -38,7 +38,7 @@ export default function ProposalReviewPage({ params }) {
   }, [id, router]);
 
   const handleStatusChange = async (newStatus) => {
-    if (!confirm(`Are you sure you want to mark this proposal as ${newStatus}?${newStatus === 'approved' ? ' This will automatically create an active Circle.' : ''}`)) {
+    if (!confirm(`Are you sure you want to mark this registration as ${newStatus}?${newStatus === 'approved' ? ' This will automatically create an active Circle.' : ''}`)) {
       return;
     }
 
@@ -53,12 +53,12 @@ export default function ProposalReviewPage({ params }) {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `Failed to ${newStatus} proposal`);
+      if (!res.ok) throw new Error(data.error || `Failed to ${newStatus} registration`);
 
       setProposal(data.proposal);
       
       if (newStatus === 'approved') {
-        alert('Proposal Approved! A new active Circle has been created.');
+        alert('Registration approved. A new active Circle has been created.');
         router.push('/admin/circles');
       }
     } catch (err) {
@@ -68,18 +68,18 @@ export default function ProposalReviewPage({ params }) {
     }
   };
 
-  if (loading) return <div className="text-center mt-12" style={{color: 'var(--text-secondary)'}}>Loading proposal details...</div>;
+  if (loading) return <div className="text-center mt-12" style={{color: 'var(--text-secondary)'}}>Loading registration details...</div>;
   if (error && !proposal) return <div className="alert alert-error" style={{maxWidth: '600px', margin: '4rem auto'}}>{error}</div>;
 
   return (
     <div className="animate-fade-in" style={{ padding: '2rem 0', maxWidth: '800px', margin: '0 auto' }}>
       <Link href="/admin/circle-registration" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.9rem' }}>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        Back to Proposals
+        Back to Registrations
       </Link>
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="font-serif" style={{ color: 'var(--accent-primary)', fontSize: '2rem', margin: 0 }}>Review Proposal</h2>
+        <h2 className="font-serif" style={{ color: 'var(--accent-primary)', fontSize: '2rem', margin: 0 }}>Review Registration</h2>
         <span className={`badge ${proposal.status === 'approved' ? '' : proposal.status === 'rejected' ? 'badge-closed' : 'badge-open'}`} style={proposal.status === 'approved' ? {background: 'rgba(34, 197, 94, 0.2)', color: 'var(--success)'} : proposal.status === 'reviewed' ? {background: 'rgba(217, 119, 6, 0.2)', color: '#d97706'} : {}}>
           {proposal.status.toUpperCase()}
         </span>
@@ -102,7 +102,7 @@ export default function ProposalReviewPage({ params }) {
 
         <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginTop: '2rem' }}>Circle Details</h3>
         <div className="mb-4">
-          <strong style={{color: 'var(--text-secondary)'}}>Proposed Circle Name (EN):</strong>
+          <strong style={{color: 'var(--text-secondary)'}}>Registered Circle Name (EN):</strong>
           <div style={{ fontSize: '1.1rem', marginTop: '0.25rem' }}>{proposal.circleNameEn}</div>
         </div>
         <div className="mb-4">
@@ -129,16 +129,18 @@ export default function ProposalReviewPage({ params }) {
         </div>
       </div>
 
-      {proposal.status !== 'approved' && proposal.status !== 'rejected' && (
+      {proposal.status !== 'approved' && (
         <div className="flex gap-4 justify-end">
-          <button 
-            className="btn-secondary" 
-            style={{ color: 'var(--danger)', borderColor: 'var(--danger)', padding: '0.8rem 1.5rem' }}
-            onClick={() => handleStatusChange('rejected')}
-            disabled={actionLoading}
-          >
-            {actionLoading ? 'Processing...' : 'Reject Proposal'}
-          </button>
+          {proposal.status !== 'rejected' && (
+            <button 
+              className="btn-secondary" 
+              style={{ color: 'var(--danger)', borderColor: 'var(--danger)', padding: '0.8rem 1.5rem' }}
+              onClick={() => handleStatusChange('rejected')}
+              disabled={actionLoading}
+            >
+              {actionLoading ? 'Processing...' : 'Reject Registration'}
+            </button>
+          )}
           
           <button 
             className="btn-primary" 
