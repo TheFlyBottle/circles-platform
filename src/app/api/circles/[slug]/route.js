@@ -11,7 +11,7 @@ export async function GET(req, { params }) {
     
     const circle = await Circle.findOne({ slug }).lean();
 
-    if (!circle || circle.status === 'draft') {
+    if (!circle) {
       return NextResponse.json({ error: 'Circle not found' }, { status: 404 });
     }
 

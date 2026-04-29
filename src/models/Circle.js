@@ -5,8 +5,8 @@ const CircleSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true },
   status: { 
     type: String, 
-    enum: ['draft', 'active', 'closed'],
-    default: 'draft'
+    enum: ['active', 'closed'],
+    default: 'active'
   },
   capacity: { type: Number, default: 0 }, // 0 means unlimited
   telegramLink: { type: String, default: '' },

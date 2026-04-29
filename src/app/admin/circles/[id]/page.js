@@ -197,7 +197,7 @@ export default function CircleDetails({ params }) {
                 style={{ marginLeft: '0.5rem', padding: '0.2rem 1rem 0.2rem 0.5rem', height: 'auto', background: 'transparent', color: 'var(--accent-primary)', fontWeight: 'bold' }}
                 disabled={updateLoading}
               >
-                <option value="draft">draft</option>
+
                 <option value="active">active</option>
                 <option value="closed">closed</option>
               </select>

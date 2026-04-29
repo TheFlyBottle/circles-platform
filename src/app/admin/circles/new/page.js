@@ -7,7 +7,7 @@ import Link from 'next/link';
 export default function NewCircle() {
   const router = useRouter();
   const [formData, setFormData] = useState({ 
-    name: '', slug: '', status: 'draft', capacity: 0 
+    name: '', slug: '', status: 'active', capacity: 0 
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -79,7 +79,6 @@ export default function NewCircle() {
           <div className="form-group">
             <label>Status</label>
             <select className="form-control" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
-              <option value="draft">Draft (Hidden)</option>
               <option value="active">Active (Open)</option>
               <option value="closed">Closed</option>
             </select>

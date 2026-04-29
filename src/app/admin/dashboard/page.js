@@ -115,7 +115,7 @@ export default function Dashboard() {
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="2"></circle></svg>
           </div>
           <h3 className="font-serif" style={{ fontSize: '1.5rem', margin: '0 0 0.5rem 0', color: 'var(--accent-primary)' }}>Circles</h3>
-          <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.5 }}>Manage active, closed, and draft circles. Edit details, manage capacities, and assign Telegram links.</p>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.5 }}>Manage active and closed circles. Edit details, manage capacities, and assign Telegram links.</p>
         </Link>
         
         <Link href="/admin/circle-proposals" className="card hover-card" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column', padding: '2rem' }}>

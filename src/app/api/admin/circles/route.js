@@ -40,7 +40,7 @@ export async function POST(req) {
     const newCircle = await Circle.create({
       name,
       slug,
-      status: status || 'draft',
+      status: status || 'active',
       capacity: capacity ? parseInt(capacity) : 0,
       telegramLink: ''
     });
