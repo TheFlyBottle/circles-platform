@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function CircleProposalsPage() {
+export default function CircleRegistrationPage() {
   const router = useRouter();
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,14 +18,14 @@ export default function CircleProposalsPage() {
       try {
         const res = await fetch('/api/admin/proposals');
         const data = await res.json();
-        
+
         if (res.status === 401) {
           router.push('/admin/login');
           return;
         }
-        
+
         if (!res.ok) throw new Error(data.error || 'Failed to load proposals');
-        
+
         if (!ignore) setProposals(data.proposals);
       } catch (err) {
         if (!ignore) setError(err.message);
@@ -53,10 +53,10 @@ export default function CircleProposalsPage() {
   };
 
   const getStatusBadge = (status) => {
-    switch(status) {
-      case 'approved': return <span className="badge" style={{background: 'rgba(34, 197, 94, 0.2)', color: 'var(--success)'}}>Approved</span>;
+    switch (status) {
+      case 'approved': return <span className="badge" style={{ background: 'rgba(34, 197, 94, 0.2)', color: 'var(--success)' }}>Approved</span>;
       case 'rejected': return <span className="badge badge-closed">Rejected</span>;
-      case 'reviewed': return <span className="badge" style={{background: 'rgba(217, 119, 6, 0.2)', color: '#d97706'}}>Reviewed</span>;
+      case 'reviewed': return <span className="badge" style={{ background: 'rgba(217, 119, 6, 0.2)', color: '#d97706' }}>Reviewed</span>;
       default: return <span className="badge badge-open">Pending</span>;
     }
   };
@@ -82,7 +82,7 @@ export default function CircleProposalsPage() {
           </button>
           {menuOpen && (
             <div style={{ position: 'absolute', top: 'calc(100% + 0.5rem)', right: 0, zIndex: 10, minWidth: '210px', padding: '0.5rem', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', boxShadow: '0 16px 32px rgba(45, 45, 45, 0.14)' }}>
-              <Link href="/circles" className="btn-secondary" onClick={() => setMenuOpen(false)} style={{ width: '100%', justifyContent: 'flex-start', marginBottom: '0.5rem' }}>View Client Side</Link>
+              <Link href="/circles" className="btn-secondary" onClick={() => setMenuOpen(false)} style={{ width: '100%', justifyContent: 'flex-start', marginBottom: '0.5rem' }}>View Circles Hub</Link>
               <button type="button" onClick={handleLogout} className="btn-secondary" disabled={loggingOut} style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--danger)', borderColor: 'var(--danger)' }}>Log Out</button>
             </div>
           )}
@@ -127,7 +127,7 @@ export default function CircleProposalsPage() {
                       {getStatusBadge(proposal.status)}
                     </td>
                     <td style={{ padding: '1rem', textAlign: 'right' }}>
-                      <Link href={`/admin/circle-proposals/${proposal._id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center' }}>
+                      <Link href={`/admin/circle-registration/${proposal._id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center' }}>
                         Review
                       </Link>
                     </td>

@@ -12,6 +12,16 @@ const nextConfig = {
         destination: '/registration/:path*',
         permanent: true,
       },
+      {
+        source: '/admin/circle-proposals',
+        destination: '/admin/circle-registration',
+        permanent: true,
+      },
+      {
+        source: '/admin/circle-proposals/:path*',
+        destination: '/admin/circle-registration/:path*',
+        permanent: true,
+      },
     ];
   },
 };

@@ -131,7 +131,7 @@ export default function CirclesPage() {
                 onClick={() => setMenuOpen(false)}
                 style={{ width: '100%', justifyContent: 'flex-start', marginBottom: '0.5rem' }}
               >
-                View Client Side
+                View Circles Hub
               </Link>
               <button
                 type="button"
@@ -242,9 +242,9 @@ export default function CirclesPage() {
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <button 
+                        <button
                           onClick={() => handleCopyLink(circle.slug, circle._id)}
-                          className="btn-secondary" 
+                          className="btn-secondary"
                           style={{ padding: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                           title="Copy Link"
                           aria-label="Copy Link"
@@ -255,9 +255,9 @@ export default function CirclesPage() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                           )}
                         </button>
-                        <Link 
-                          href={`/admin/circles/${circle._id}`} 
-                          className="btn-secondary" 
+                        <Link
+                          href={`/admin/circles/${circle._id}`}
+                          className="btn-secondary"
                           style={{ padding: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                           title="Manage Circle"
                           aria-label="Manage Circle"
@@ -275,7 +275,8 @@ export default function CirclesPage() {
       </div>
 
       {/* Inject specific dynamic styling for Telegram Rows */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .row-completed td {
           border-bottom: 1px solid rgba(74, 93, 78, 0.2) !important;
           background: rgba(74, 93, 78, 0.03);
