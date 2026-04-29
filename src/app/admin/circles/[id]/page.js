@@ -17,6 +17,12 @@ export default function CircleDetails({ params }) {
   const [capacityInput, setCapacityInput] = useState(0);
   const [deletingId, setDeletingId] = useState(null);
 
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailMessage, setEmailMessage] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailSuccess, setEmailSuccess] = useState('');
+  const [emailError, setEmailError] = useState('');
+
   const loadCircleData = useCallback(async () => {
     const res = await fetch(`/api/admin/circles/${id}`);
     const data = await res.json();
@@ -157,6 +163,32 @@ export default function CircleDetails({ params }) {
     }
   };
 
+  const handleSendEmail = async (e) => {
+    e.preventDefault();
+    setEmailLoading(true);
+    setEmailError('');
+    setEmailSuccess('');
+
+    try {
+      const res = await fetch(`/api/admin/circles/${id}/email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: emailSubject, message: emailMessage })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      setEmailSuccess(`Email successfully sent to ${data.count} members!`);
+      setEmailSubject('');
+      setEmailMessage('');
+    } catch (err) {
+      setEmailError(err.message);
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   if (loading) return <div className="text-center mt-8">Loading circle...</div>;
   if (!circle) return <div className="text-center mt-8">Circle not found</div>;
 
@@ -247,6 +279,43 @@ export default function CircleDetails({ params }) {
           <button type="submit" className="btn-primary" disabled={updateLoading}>
             {updateLoading ? 'Updating...' : 'Save & Send Invites'}
           </button>
+        </form>
+      </div>
+
+      <div className="card mb-8">
+        <h3 className="font-serif" style={{ marginBottom: '1rem', fontSize: '1.25rem' }}>Send Mass Email to Members</h3>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+          Send a custom email to all {submissions.length} registered members of this circle. Emails are sent securely using BCC.
+        </p>
+
+        {emailError && <div className="alert alert-error mb-4">{emailError}</div>}
+        {emailSuccess && <div className="alert alert-success mb-4">{emailSuccess}</div>}
+
+        <form onSubmit={handleSendEmail} className="flex flex-col gap-4">
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Subject</label>
+            <input 
+              type="text" className="form-control dir-rtl" 
+              value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)}
+              placeholder="e.g., Update on Circle Schedule"
+              required
+            />
+          </div>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Message</label>
+            <textarea 
+              className="form-control dir-rtl" 
+              value={emailMessage} onChange={(e) => setEmailMessage(e.target.value)}
+              placeholder="Your message here..."
+              rows="5"
+              required
+            />
+          </div>
+          <div className="flex justify-end mt-2">
+            <button type="submit" className="btn-primary" disabled={emailLoading || submissions.length === 0}>
+              {emailLoading ? 'Sending...' : `Send to ${submissions.length} Members`}
+            </button>
+          </div>
         </form>
       </div>
 

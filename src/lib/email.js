@@ -86,3 +86,46 @@ export async function sendTelegramInviteEmail(toEmail, name, circleName, telegra
     return false;
   }
 }
+
+export async function sendCustomEmail(emails, subject, messageHtml, circleName) {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Simulating custom email... missing RESEND_API_KEY', { emails, subject });
+      return true;
+    }
+
+    const htmlContent = `
+        <div dir="rtl" style="font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fdfbf7; padding: 40px 20px; color: #2d2d2d; line-height: 1.8;">
+          <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(45, 45, 45, 0.08);">
+            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/dibamackie/circles/master/public/circles-bg.png'); background-size: cover; background-position: center;"></div>
+            <div style="padding: 40px 30px;">
+              <h2 style="color: #4a5d4e; margin-top: 0; font-size: 24px; font-weight: bold; text-align: center;">پیام جدید: ${circleName}</h2>
+              
+              <div style="font-size: 16px; margin: 30px 0; white-space: pre-wrap;">
+${messageHtml}
+              </div>
+              
+              <hr style="border: 0; border-top: 1px solid #e5e0d8; margin: 30px 0;" />
+              
+              <p style="font-size: 14px; color: #5a5a5a; text-align: center; margin-bottom: 0;">
+                با احترام،<br/>تیم حلقه‌های مگس در بطری
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+
+    // Use Resend's batch API to send individual emails efficiently
+    await resend.batch.send(emails.map(email => ({
+      from: SENDER_EMAIL,
+      to: [email],
+      subject: subject,
+      html: htmlContent
+    })));
+
+    return true;
+  } catch (error) {
+    console.error('Custom email error:', error);
+    return false;
+  }
+}
