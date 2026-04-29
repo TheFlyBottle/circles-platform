@@ -215,13 +215,13 @@ export default function CircleDetails({ params }) {
                 style={{ marginLeft: '0.5rem', width: '80px', padding: '0.2rem 0.5rem', height: 'auto', background: 'transparent', color: 'var(--accent-primary)', fontWeight: 'bold' }}
                 disabled={updateLoading}
                 title="Enter 0 for Unlimited"
-              />
+              />
             </span>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/admin/dashboard" className="btn-secondary">
-            Back to Dashboard
+          <Link href="/admin/circles" className="btn-secondary">
+            Back to Circles
           </Link>
         </div>
       </div>
