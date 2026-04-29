@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function Proposals() {
+export default function Registration() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -47,7 +47,7 @@ export default function Proposals() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
 
-            router.push('/proposals/success');
+            router.push('/registration/success');
         } catch (err) {
             setError(err.message);
             setLoading(false);
@@ -134,7 +134,7 @@ export default function Proposals() {
                             <input type="text" className="form-control dir-rtl" required value={formData.circleNameFa} onChange={e => setFormData({ ...formData, circleNameFa: e.target.value })} />
                         </div>
                         <div className="form-group text-left">
-                            <label>Circle's Name in English <span style={{ color: 'var(--danger)' }}>*</span></label>
+                            <label>Circle&apos;s Name in English <span style={{ color: 'var(--danger)' }}>*</span></label>
                             <input type="text" className="form-control" required value={formData.circleNameEn} onChange={e => setFormData({ ...formData, circleNameEn: e.target.value })} />
                         </div>
                     </div>
