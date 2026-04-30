@@ -38,7 +38,7 @@ export default function Registration() {
         }
 
         try {
-            const res = await fetch('/api/proposals', {
+            const res = await fetch('/api/registrations', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

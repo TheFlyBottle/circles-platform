@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { changeAdminPassword } from '@/lib/admin-auth';
+import { recordAdminAction } from '@/lib/audit-log';
 
 export async function PATCH(req) {
   try {
@@ -9,6 +10,12 @@ export async function PATCH(req) {
 
     const { currentPassword, newPassword } = await req.json();
     await changeAdminPassword(session.email, currentPassword, newPassword);
+    await recordAdminAction(session, {
+      action: 'admin.password_change',
+      resourceType: 'admin',
+      resourceId: session.email,
+      resourceLabel: session.email
+    });
 
     return NextResponse.json({ success: true, message: 'Password updated successfully.' });
   } catch (error) {

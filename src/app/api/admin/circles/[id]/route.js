@@ -6,6 +6,7 @@ import Circle from '@/models/Circle';
 import Submission from '@/models/Submission';
 import { serializeDoc, serializeDocs } from '@/lib/serialize';
 import { sendTelegramInviteEmail } from '@/lib/email';
+import { recordAdminAction } from '@/lib/audit-log';
 
 export async function GET(req, { params }) {
   try {
@@ -47,6 +48,13 @@ export async function PUT(req, { params }) {
     const circle = await Circle.findById(id);
     if (!circle) return NextResponse.json({ error: 'Circle not found' }, { status: 404 });
 
+    const before = {
+      name: circle.name,
+      slug: circle.slug,
+      status: circle.status,
+      capacity: circle.capacity,
+      hasTelegramLink: Boolean(circle.telegramLink)
+    };
     const hadTelegramLink = Boolean(circle.telegramLink);
     const allowedUpdates = ['name', 'slug', 'status', 'capacity', 'telegramLink'];
     for (const field of allowedUpdates) {
@@ -81,6 +89,23 @@ export async function PUT(req, { params }) {
     }
     
     await circle.save();
+    await recordAdminAction(session, {
+      action: 'circle.update',
+      resourceType: 'circle',
+      resourceId: circle._id,
+      resourceLabel: circle.name,
+      details: {
+        before,
+        after: {
+          name: circle.name,
+          slug: circle.slug,
+          status: circle.status,
+          capacity: circle.capacity,
+          hasTelegramLink: Boolean(circle.telegramLink)
+        },
+        updatedFields: allowedUpdates.filter((field) => field in data)
+      }
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -111,7 +136,17 @@ export async function DELETE(req, { params }) {
     const circle = await Circle.findByIdAndDelete(id);
     if (!circle) return NextResponse.json({ error: 'Circle not found' }, { status: 404 });
 
-    await Submission.deleteMany({ circleId: id });
+    const deletionResult = await Submission.deleteMany({ circleId: id });
+    await recordAdminAction(session, {
+      action: 'circle.delete',
+      resourceType: 'circle',
+      resourceId: id,
+      resourceLabel: circle.name,
+      details: {
+        slug: circle.slug,
+        deletedSubmissions: deletionResult.deletedCount || 0
+      }
+    });
 
     return NextResponse.json({ success: true, message: 'Circle deleted successfully.' });
   } catch (error) {

@@ -4,6 +4,7 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_test123');
 
 const SENDER_EMAIL = 'onboarding@resend.dev';
 const NEW_CIRCLE_NOTIFICATION_EMAIL = 'circleadmins@theflybottle.org';
+const SUPER_ADMIN_EMAIL = 'diba.makki@theflybottle.org';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -14,13 +15,29 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function formatProposalField(label, value) {
+function formatRegistrationField(label, value) {
   const displayValue = value || 'Not provided';
 
   return `
     <tr>
       <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #5a5a5a; width: 35%; vertical-align: top;">${escapeHtml(label)}</td>
       <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">${escapeHtml(displayValue)}</td>
+    </tr>
+  `;
+}
+
+function formatAuditLogRow(log) {
+  const details = log.details && Object.keys(log.details).length > 0
+    ? JSON.stringify(log.details)
+    : 'Recorded';
+
+  return `
+    <tr>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; white-space: nowrap;">${escapeHtml(new Date(log.createdAt).toLocaleString('en-US'))}</td>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8;">${escapeHtml(log.actorName || log.actorEmail)}</td>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8;">${escapeHtml(log.action)}</td>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8;">${escapeHtml(log.resourceLabel || log.resourceType)}</td>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8;">${escapeHtml(details)}</td>
     </tr>
   `;
 }
@@ -151,16 +168,16 @@ ${messageHtml}
   }
 }
 
-export async function sendNewCircleProposalNotification(proposal) {
+export async function sendNewCircleRegistrationNotification(registration) {
   try {
-    const circleName = proposal.circleNameEn || proposal.circleNameFa || 'New circle';
+    const circleName = registration.circleNameEn || registration.circleNameFa || 'New circle';
 
     if (!process.env.RESEND_API_KEY) {
-      console.warn('Simulating new circle proposal notification... missing RESEND_API_KEY', {
+      console.warn('Simulating new circle registration notification... missing RESEND_API_KEY', {
         to: NEW_CIRCLE_NOTIFICATION_EMAIL,
         circleName,
-        organizer: proposal.fullName,
-        email: proposal.email
+        organizer: registration.fullName,
+        email: registration.email
       });
       return true;
     }
@@ -174,27 +191,27 @@ export async function sendNewCircleProposalNotification(proposal) {
           <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 12px; overflow: hidden;">
             <div style="padding: 28px 28px 20px;">
               <h2 style="color: #4a5d4e; margin: 0 0 12px; font-size: 22px;">Someone registered to make a new circle</h2>
-              <p style="font-size: 15px; margin: 0 0 24px;">A new circle proposal was submitted through the registration form.</p>
+              <p style="font-size: 15px; margin: 0 0 24px;">A new circle registration was submitted through the registration form.</p>
 
               <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                ${formatProposalField('Organizer name', proposal.fullName)}
-                ${formatProposalField('Email', proposal.email)}
-                ${formatProposalField('Telegram ID', proposal.telegramId)}
-                ${formatProposalField('Phone number', proposal.phoneNumber)}
-                ${formatProposalField('Country', proposal.country)}
-                ${formatProposalField('Workplace / school', proposal.workplaceOrEducation)}
-                ${formatProposalField('Education level', proposal.educationLevel)}
-                ${formatProposalField('Previous organizer', proposal.previousOrganizer ? 'Yes' : 'No')}
-                ${formatProposalField('Circle name (English)', proposal.circleNameEn)}
-                ${formatProposalField('Circle name (Persian)', proposal.circleNameFa)}
-                ${formatProposalField('Expected registration date', proposal.expectedRegistrationDate)}
-                ${formatProposalField('Expected session start date', proposal.expectedSessionStartDate)}
-                ${formatProposalField('Expected duration', proposal.expectedDuration)}
+                ${formatRegistrationField('Organizer name', registration.fullName)}
+                ${formatRegistrationField('Email', registration.email)}
+                ${formatRegistrationField('Telegram ID', registration.telegramId)}
+                ${formatRegistrationField('Phone number', registration.phoneNumber)}
+                ${formatRegistrationField('Country', registration.country)}
+                ${formatRegistrationField('Workplace / school', registration.workplaceOrEducation)}
+                ${formatRegistrationField('Education level', registration.educationLevel)}
+                ${formatRegistrationField('Previous organizer', registration.previousOrganizer ? 'Yes' : 'No')}
+                ${formatRegistrationField('Circle name (English)', registration.circleNameEn)}
+                ${formatRegistrationField('Circle name (Persian)', registration.circleNameFa)}
+                ${formatRegistrationField('Expected registration date', registration.expectedRegistrationDate)}
+                ${formatRegistrationField('Expected session start date', registration.expectedSessionStartDate)}
+                ${formatRegistrationField('Expected duration', registration.expectedDuration)}
               </table>
 
               <div style="margin-top: 24px;">
                 <h3 style="color: #4a5d4e; margin: 0 0 8px; font-size: 16px;">Circle description</h3>
-                <div style="white-space: pre-wrap; background-color: #fdfbf7; border: 1px solid #e5e0d8; border-radius: 8px; padding: 14px;">${escapeHtml(proposal.description || 'Not provided')}</div>
+                <div style="white-space: pre-wrap; background-color: #fdfbf7; border: 1px solid #e5e0d8; border-radius: 8px; padding: 14px;">${escapeHtml(registration.description || 'Not provided')}</div>
               </div>
             </div>
           </div>
@@ -204,7 +221,56 @@ export async function sendNewCircleProposalNotification(proposal) {
 
     return true;
   } catch (error) {
-    console.error('New circle proposal notification email error:', error);
+    console.error('New circle registration notification email error:', error);
+    return false;
+  }
+}
+
+export async function sendAuditLogDigestEmail(logs) {
+  try {
+    if (!logs?.length) return true;
+
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Simulating audit log digest email... missing RESEND_API_KEY', {
+        to: SUPER_ADMIN_EMAIL,
+        count: logs.length
+      });
+      return true;
+    }
+
+    await resend.emails.send({
+      from: SENDER_EMAIL,
+      to: [SUPER_ADMIN_EMAIL],
+      subject: `Admin activity log reached ${logs.length} entries`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 960px; margin: 0 auto; background-color: #fdfbf7; padding: 32px 20px; color: #2d2d2d; line-height: 1.5;">
+          <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 12px; overflow: hidden;">
+            <div style="padding: 28px;">
+              <h2 style="color: #4a5d4e; margin: 0 0 12px; font-size: 22px;">Admin activity log digest</h2>
+              <p style="font-size: 15px; margin: 0 0 24px;">The admin activity log reached ${logs.length} new entries. A copy is included below.</p>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                  <tr style="background: #f4f0e8;">
+                    <th align="left" style="padding: 10px 12px;">Time</th>
+                    <th align="left" style="padding: 10px 12px;">Admin</th>
+                    <th align="left" style="padding: 10px 12px;">Action</th>
+                    <th align="left" style="padding: 10px 12px;">Target</th>
+                    <th align="left" style="padding: 10px 12px;">Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${logs.map(formatAuditLogRow).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Audit log digest email error:', error);
     return false;
   }
 }

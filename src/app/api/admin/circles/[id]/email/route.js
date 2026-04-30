@@ -4,6 +4,7 @@ import connectMongo from '@/lib/mongodb';
 import Circle from '@/models/Circle';
 import Submission from '@/models/Submission';
 import { sendCustomEmail } from '@/lib/email';
+import { recordAdminAction } from '@/lib/audit-log';
 
 export async function POST(req, { params }) {
   try {
@@ -44,6 +45,17 @@ export async function POST(req, { params }) {
     if (failedChunks > 0 && failedChunks === Math.ceil(emails.length / chunkSize)) {
         return NextResponse.json({ error: 'Failed to send emails. Check your Resend API configuration.' }, { status: 500 });
     }
+    await recordAdminAction(session, {
+      action: 'circle.email_members',
+      resourceType: 'circle',
+      resourceId: circle._id,
+      resourceLabel: circle.name,
+      details: {
+        subject,
+        recipientCount: emails.length,
+        failedChunks
+      }
+    });
 
     return NextResponse.json({ success: true, count: emails.length });
   } catch (error) {

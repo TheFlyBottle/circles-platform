@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import connectMongo from '@/lib/mongodb';
 import Circle from '@/models/Circle';
 import { serializeDoc, serializeDocs } from '@/lib/serialize';
+import { recordAdminAction } from '@/lib/audit-log';
 
 export async function GET(req) {
   try {
@@ -43,6 +44,17 @@ export async function POST(req) {
       status: status || 'active',
       capacity: capacity ? parseInt(capacity) : 0,
       telegramLink: ''
+    });
+    await recordAdminAction(session, {
+      action: 'circle.create',
+      resourceType: 'circle',
+      resourceId: newCircle._id,
+      resourceLabel: newCircle.name,
+      details: {
+        slug: newCircle.slug,
+        status: newCircle.status,
+        capacity: newCircle.capacity
+      }
     });
 
     return NextResponse.json({ success: true, circle: serializeDoc(newCircle) });

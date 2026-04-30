@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 export default function CircleRegistrationPage() {
   const router = useRouter();
-  const [proposals, setProposals] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
@@ -16,7 +16,7 @@ export default function CircleRegistrationPage() {
     let ignore = false;
     async function load() {
       try {
-        const res = await fetch('/api/admin/proposals');
+        const res = await fetch('/api/admin/registrations');
         const data = await res.json();
 
         if (res.status === 401) {
@@ -24,9 +24,9 @@ export default function CircleRegistrationPage() {
           return;
         }
 
-        if (!res.ok) throw new Error(data.error || 'Failed to load proposals');
+        if (!res.ok) throw new Error(data.error || 'Failed to load registrations');
 
-        if (!ignore) setProposals(data.proposals);
+        if (!ignore) setRegistrations(data.registrations || []);
       } catch (err) {
         if (!ignore) setError(err.message);
       } finally {
@@ -97,7 +97,7 @@ export default function CircleRegistrationPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)' }}>
-                <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Proposed Circle (EN)</th>
+                <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Registered Circle (EN)</th>
                 <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Applicant</th>
                 <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Date</th>
                 <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Status</th>
@@ -106,28 +106,28 @@ export default function CircleRegistrationPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading proposals...</td></tr>
-              ) : proposals.length === 0 ? (
-                <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No proposals found.</td></tr>
+                <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading registrations...</td></tr>
+              ) : registrations.length === 0 ? (
+                <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No registrations found.</td></tr>
               ) : (
-                proposals.map(proposal => (
-                  <tr key={proposal._id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }}>
+                registrations.map(registration => (
+                  <tr key={registration._id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }}>
                     <td style={{ padding: '1rem' }}>
-                      <div style={{ fontWeight: 500 }}>{proposal.circleNameEn}</div>
-                      <div className="dir-rtl" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{proposal.circleNameFa}</div>
+                      <div style={{ fontWeight: 500 }}>{registration.circleNameEn}</div>
+                      <div className="dir-rtl" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{registration.circleNameFa}</div>
                     </td>
                     <td style={{ padding: '1rem' }}>
-                      <div>{proposal.fullName}</div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{proposal.email}</div>
+                      <div>{registration.fullName}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{registration.email}</div>
                     </td>
                     <td style={{ padding: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                      {new Date(proposal.createdAt).toLocaleDateString()}
+                      {new Date(registration.createdAt).toLocaleDateString()}
                     </td>
                     <td style={{ padding: '1rem' }}>
-                      {getStatusBadge(proposal.status)}
+                      {getStatusBadge(registration.status)}
                     </td>
                     <td style={{ padding: '1rem', textAlign: 'right' }}>
-                      <Link href={`/admin/circle-registration/${proposal._id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center' }}>
+                      <Link href={`/admin/circle-registration/${registration._id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center' }}>
                         Review
                       </Link>
                     </td>

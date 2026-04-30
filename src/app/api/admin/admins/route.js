@@ -3,6 +3,7 @@ import connectMongo from '@/lib/mongodb';
 import Admin from '@/models/Admin';
 import { getSession, isSuperAdmin } from '@/lib/auth';
 import { createAdminProfile, getAdminProfileByEmail, serializeAdmin } from '@/lib/admin-auth';
+import { recordAdminAction } from '@/lib/audit-log';
 
 export async function GET() {
   try {
@@ -32,6 +33,17 @@ export async function POST(req) {
 
     const data = await req.json();
     const admin = await createAdminProfile(data);
+    await recordAdminAction(session, {
+      action: 'admin.create',
+      resourceType: 'admin',
+      resourceId: admin._id,
+      resourceLabel: admin.email,
+      details: {
+        name: admin.name,
+        role: admin.role,
+        forcePasswordChange: admin.forcePasswordChange
+      }
+    });
 
     return NextResponse.json({ success: true, admin }, { status: 201 });
   } catch (error) {

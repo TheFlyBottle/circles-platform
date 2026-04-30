@@ -19,18 +19,38 @@ const EMPTY_PASSWORD_FORM = {
   confirmPassword: ''
 };
 
+const ACTION_LABELS = {
+  'admin.create': 'Created admin',
+  'admin.delete': 'Removed admin',
+  'admin.password_change': 'Changed password',
+  'circle.create': 'Created circle',
+  'circle.create_from_registration': 'Created circle from registration',
+  'circle.update': 'Updated circle',
+  'circle.delete': 'Deleted circle',
+  'circle.email_members': 'Emailed circle members',
+  'registration.status_update': 'Updated registration status'
+};
+
+function formatAction(action) {
+  return ACTION_LABELS[action] || action;
+}
+
 export default function AdminSettings() {
   const router = useRouter();
   const [admins, setAdmins] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
   const [currentAdmin, setCurrentAdmin] = useState(null);
   const [canRemoveAdmins, setCanRemoveAdmins] = useState(false);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [passwordForm, setPasswordForm] = useState(EMPTY_PASSWORD_FORM);
   const [activeSetting, setActiveSetting] = useState('password');
   const [loading, setLoading] = useState(true);
+  const [logsLoading, setLogsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [deletingLogId, setDeletingLogId] = useState(null);
+  const [clearingLogs, setClearingLogs] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const mustChangePassword = Boolean(currentAdmin?.forcePasswordChange);
@@ -57,10 +77,39 @@ export default function AdminSettings() {
     }
   }, [router]);
 
+  const loadAuditLogs = useCallback(async () => {
+    setLogsLoading(true);
+
+    try {
+      const res = await fetch('/api/admin/audit-logs?limit=50');
+      const data = await res.json();
+
+      if (res.status === 401) {
+        router.push('/admin/login');
+        return;
+      }
+
+      if (!res.ok) throw new Error(data.error || 'Failed to load activity logs.');
+
+      setAuditLogs(data.logs || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLogsLoading(false);
+    }
+  }, [router]);
+
   useEffect(() => {
     const timer = setTimeout(loadAdmins, 0);
     return () => clearTimeout(timer);
   }, [loadAdmins]);
+
+  useEffect(() => {
+    if (activeSetting !== 'activity-log' || mustChangePassword) return;
+
+    const timer = setTimeout(loadAuditLogs, 0);
+    return () => clearTimeout(timer);
+  }, [activeSetting, loadAuditLogs, mustChangePassword]);
 
   const handleCreateAdmin = async (e) => {
     e.preventDefault();
@@ -145,6 +194,48 @@ export default function AdminSettings() {
     }
   };
 
+  const handleDeleteLog = async (log) => {
+    setDeletingLogId(log._id);
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await fetch(`/api/admin/audit-logs/${log._id}`, { method: 'DELETE' });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Failed to delete activity log.');
+
+      setSuccess('Activity log deleted.');
+      await loadAuditLogs();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDeletingLogId(null);
+    }
+  };
+
+  const handleClearLogs = async () => {
+    if (!confirm('Delete all activity logs?')) return;
+
+    setClearingLogs(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await fetch('/api/admin/audit-logs', { method: 'DELETE' });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Failed to clear activity logs.');
+
+      setSuccess(`Deleted ${data.deletedCount} activity logs.`);
+      await loadAuditLogs();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setClearingLogs(false);
+    }
+  };
+
   return (
     <div className="animate-fade-in" style={{ padding: '2rem 0' }}>
       <div className="mb-8">
@@ -164,7 +255,7 @@ export default function AdminSettings() {
       )}
 
       {!mustChangePassword && (
-        <div className="grid md:grid-cols-2 gap-4 mb-8">
+        <div className="grid md:grid-cols-3 gap-4 mb-8">
         <button
           type="button"
           className="card hover-card"
@@ -195,6 +286,22 @@ export default function AdminSettings() {
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg>
           </div>
           <h3 className="font-serif" style={{ fontSize: '1.25rem', margin: 0, color: 'var(--accent-primary)' }}>Create Admin</h3>
+        </button>
+
+        <button
+          type="button"
+          className="card hover-card"
+          onClick={() => setActiveSetting('activity-log')}
+          style={{
+            padding: '1.5rem',
+            textAlign: 'left',
+            borderColor: activeSetting === 'activity-log' ? 'var(--accent-primary)' : 'var(--border-color)'
+          }}
+        >
+          <div style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+          </div>
+          <h3 className="font-serif" style={{ fontSize: '1.25rem', margin: 0, color: 'var(--accent-primary)' }}>Activity Log</h3>
         </button>
         </div>
       )}
@@ -266,6 +373,74 @@ export default function AdminSettings() {
               {saving ? 'Creating...' : 'Create Admin'}
             </button>
           </form>
+        </div>
+      )}
+
+      {!mustChangePassword && activeSetting === 'activity-log' && (
+        <div className="card mb-8" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="flex justify-between items-center" style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+            <h3 className="font-serif" style={{ margin: 0, fontSize: '1.25rem' }}>Activity Log</h3>
+            <div className="flex gap-2">
+              {canRemoveAdmins && (
+                <button type="button" className="btn-secondary" onClick={handleClearLogs} disabled={clearingLogs || logsLoading || auditLogs.length === 0} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}>
+                  {clearingLogs ? 'Clearing...' : 'Clear All'}
+                </button>
+              )}
+              <button type="button" className="btn-secondary" onClick={loadAuditLogs} disabled={logsLoading} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                {logsLoading ? 'Refreshing...' : 'Refresh'}
+              </button>
+            </div>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Admin</th>
+                  <th>Action</th>
+                  <th>Target</th>
+                  <th>Details</th>
+                  {canRemoveAdmins && <th style={{ textAlign: 'right' }}>Actions</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {logsLoading ? (
+                  <tr><td colSpan={canRemoveAdmins ? '6' : '5'} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading activity...</td></tr>
+                ) : auditLogs.length === 0 ? (
+                  <tr><td colSpan={canRemoveAdmins ? '6' : '5'} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No activity recorded yet.</td></tr>
+                ) : (
+                  auditLogs.map((log) => (
+                    <tr key={log._id}>
+                      <td style={{ whiteSpace: 'nowrap', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{new Date(log.createdAt).toLocaleString()}</td>
+                      <td>
+                        <div style={{ fontWeight: 500 }}>{log.actorName || log.actorEmail}</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{log.actorEmail}</div>
+                      </td>
+                      <td><span className="badge">{formatAction(log.action)}</span></td>
+                      <td>
+                        <div style={{ fontWeight: 500 }}>{log.resourceLabel || log.resourceType}</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{log.resourceType}</div>
+                      </td>
+                      <td style={{ maxWidth: '260px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                        {log.details?.updatedFields?.length ? `Fields: ${log.details.updatedFields.join(', ')}` : ''}
+                        {log.details?.status ? `Status: ${log.details.previousStatus || 'unknown'} -> ${log.details.status}` : ''}
+                        {log.details?.recipientCount ? `Sent to ${log.details.recipientCount} members` : ''}
+                        {log.details?.deletedSubmissions ? `Deleted ${log.details.deletedSubmissions} submissions` : ''}
+                        {!log.details?.updatedFields?.length && !log.details?.status && !log.details?.recipientCount && !log.details?.deletedSubmissions ? 'Recorded' : ''}
+                      </td>
+                      {canRemoveAdmins && (
+                        <td style={{ textAlign: 'right' }}>
+                          <button type="button" className="btn-secondary" onClick={() => handleDeleteLog(log)} disabled={deletingLogId === log._id} style={{ color: 'var(--danger)', borderColor: 'var(--danger)', padding: '0.35rem 0.7rem', fontSize: '0.8rem' }}>
+                            {deletingLogId === log._id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

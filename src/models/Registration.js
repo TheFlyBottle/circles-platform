@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const ProposalSchema = new mongoose.Schema({
+const RegistrationSchema = new mongoose.Schema({
   previousOrganizer: { type: Boolean, required: true },
   fullName: { type: String, required: true },
   workplaceOrEducation: { type: String },
@@ -19,4 +19,4 @@ const ProposalSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending', 'reviewed', 'approved', 'rejected'], default: 'pending' },
 }, { timestamps: true });
 
-export default mongoose.models.Proposal || mongoose.model('Proposal', ProposalSchema);
+export default mongoose.models.Registration || mongoose.model('Registration', RegistrationSchema);

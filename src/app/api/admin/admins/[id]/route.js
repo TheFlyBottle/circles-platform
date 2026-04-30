@@ -3,6 +3,7 @@ import connectMongo from '@/lib/mongodb';
 import Admin from '@/models/Admin';
 import { getSession, isSuperAdmin } from '@/lib/auth';
 import { SUPER_ADMIN_EMAIL, normalizeAdminEmail } from '@/lib/admin-auth';
+import { recordAdminAction } from '@/lib/audit-log';
 
 export async function DELETE(_req, { params }) {
   try {
@@ -27,7 +28,19 @@ export async function DELETE(_req, { params }) {
       return NextResponse.json({ error: 'You cannot remove your own account.' }, { status: 400 });
     }
 
+    const adminName = `${admin.firstName} ${admin.lastName}`.trim();
     await Admin.findByIdAndDelete(id);
+    await recordAdminAction(session, {
+      action: 'admin.delete',
+      resourceType: 'admin',
+      resourceId: id,
+      resourceLabel: email,
+      details: {
+        name: adminName,
+        position: admin.position || '',
+        department: admin.department || ''
+      }
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
