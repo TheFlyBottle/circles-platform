@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectMongo from '@/lib/mongodb';
 import Proposal from '@/models/Proposal';
+import { sendNewCircleProposalNotification } from '@/lib/email';
 
 export async function POST(req) {
   try {
@@ -22,6 +23,13 @@ export async function POST(req) {
     await connectMongo();
 
     const proposal = await Proposal.create(data);
+    const notificationSent = await sendNewCircleProposalNotification(proposal);
+
+    if (!notificationSent) {
+      console.warn('New circle proposal was created, but the admin notification email was not sent.', {
+        proposalId: proposal._id
+      });
+    }
 
     return NextResponse.json({ success: true, proposalId: proposal._id });
   } catch (error) {

@@ -3,6 +3,27 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY || 're_test123');
 
 const SENDER_EMAIL = 'onboarding@resend.dev';
+const NEW_CIRCLE_NOTIFICATION_EMAIL = 'diba.makki@theflybottle.org';
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatProposalField(label, value) {
+  const displayValue = value || 'Not provided';
+
+  return `
+    <tr>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #5a5a5a; width: 35%; vertical-align: top;">${escapeHtml(label)}</td>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">${escapeHtml(displayValue)}</td>
+    </tr>
+  `;
+}
 
 export async function sendConfirmationEmail(toEmail, name, circleName) {
   try {
@@ -126,6 +147,64 @@ ${messageHtml}
     return true;
   } catch (error) {
     console.error('Custom email error:', error);
+    return false;
+  }
+}
+
+export async function sendNewCircleProposalNotification(proposal) {
+  try {
+    const circleName = proposal.circleNameEn || proposal.circleNameFa || 'New circle';
+
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Simulating new circle proposal notification... missing RESEND_API_KEY', {
+        to: NEW_CIRCLE_NOTIFICATION_EMAIL,
+        circleName,
+        organizer: proposal.fullName,
+        email: proposal.email
+      });
+      return true;
+    }
+
+    await resend.emails.send({
+      from: SENDER_EMAIL,
+      to: [NEW_CIRCLE_NOTIFICATION_EMAIL],
+      subject: `New circle registration: ${circleName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 680px; margin: 0 auto; background-color: #fdfbf7; padding: 32px 20px; color: #2d2d2d; line-height: 1.6;">
+          <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 12px; overflow: hidden;">
+            <div style="padding: 28px 28px 20px;">
+              <h2 style="color: #4a5d4e; margin: 0 0 12px; font-size: 22px;">Someone registered to make a new circle</h2>
+              <p style="font-size: 15px; margin: 0 0 24px;">A new circle proposal was submitted through the registration form.</p>
+
+              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                ${formatProposalField('Organizer name', proposal.fullName)}
+                ${formatProposalField('Email', proposal.email)}
+                ${formatProposalField('Telegram ID', proposal.telegramId)}
+                ${formatProposalField('Phone number', proposal.phoneNumber)}
+                ${formatProposalField('Country', proposal.country)}
+                ${formatProposalField('Workplace / school', proposal.workplaceOrEducation)}
+                ${formatProposalField('Education level', proposal.educationLevel)}
+                ${formatProposalField('Previous organizer', proposal.previousOrganizer ? 'Yes' : 'No')}
+                ${formatProposalField('Circle name (English)', proposal.circleNameEn)}
+                ${formatProposalField('Circle name (Persian)', proposal.circleNameFa)}
+                ${formatProposalField('Expected registration date', proposal.expectedRegistrationDate)}
+                ${formatProposalField('Expected session start date', proposal.expectedSessionStartDate)}
+                ${formatProposalField('Expected duration', proposal.expectedDuration)}
+              </table>
+
+              <div style="margin-top: 24px;">
+                <h3 style="color: #4a5d4e; margin: 0 0 8px; font-size: 16px;">Circle description</h3>
+                <div style="white-space: pre-wrap; background-color: #fdfbf7; border: 1px solid #e5e0d8; border-radius: 8px; padding: 14px;">${escapeHtml(proposal.description || 'Not provided')}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+    });
+
+    return true;
+  } catch (error) {
+    console.error('New circle proposal notification email error:', error);
     return false;
   }
 }
