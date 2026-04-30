@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY || 're_test123');
 
 const SENDER_EMAIL = 'onboarding@resend.dev';
-const NEW_CIRCLE_NOTIFICATION_EMAIL = 'diba.makki@theflybottle.org';
+const NEW_CIRCLE_NOTIFICATION_EMAIL = 'circleadmins@theflybottle.org';
 
 function escapeHtml(value) {
   return String(value ?? '')
