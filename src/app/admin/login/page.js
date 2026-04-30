@@ -25,7 +25,7 @@ export default function Login() {
       
       if (!res.ok) throw new Error(data.error || 'Login failed');
       
-      router.push('/admin/dashboard');
+      router.push(data.forcePasswordChange ? '/admin/settings' : '/admin/dashboard');
       router.refresh();
     } catch (err) {
       setError(err.message);
@@ -53,7 +53,7 @@ export default function Login() {
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             required 
-            placeholder="name@theflybottle.org"
+            placeholder="name@example.com"
           />
         </div>
         <div className="form-group">

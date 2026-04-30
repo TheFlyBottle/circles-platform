@@ -79,6 +79,14 @@ export default function Dashboard() {
               >
                 View Circles Hub
               </Link>
+              <Link
+                href="/admin/settings"
+                className="btn-secondary"
+                onClick={() => setMenuOpen(false)}
+                style={{ width: '100%', justifyContent: 'flex-start', marginBottom: '0.5rem' }}
+              >
+                Admin Settings
+              </Link>
               <button
                 type="button"
                 onClick={handleLogout}
@@ -124,6 +132,13 @@ export default function Dashboard() {
           </div>
           <h3 className="font-serif" style={{ fontSize: '1.5rem', margin: '0 0 0.5rem 0', color: 'var(--accent-primary)' }}>Circle Registrations</h3>
           {/* <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.5 }}>Review and manage user-submitted registrations for new circles.</p> */}
+        </Link>
+
+        <Link href="/admin/settings" className="card hover-card" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column', padding: '2rem' }}>
+          <div style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"></path><path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.6-.22l-2.49 1a7.28 7.28 0 0 0-1.69-.98L14.5 2.4A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.5.4l-.38 2.67c-.61.24-1.18.56-1.69.98l-2.49-1a.5.5 0 0 0-.6.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.02.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46a.5.5 0 0 0 .6.22l2.49-1c.51.4 1.08.73 1.69.98l.38 2.67a.5.5 0 0 0 .5.4h4a.5.5 0 0 0 .5-.4l.38-2.67c.61-.24 1.18-.56 1.69-.98l2.49 1a.5.5 0 0 0 .6-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65Z"></path></svg>
+          </div>
+          <h3 className="font-serif" style={{ fontSize: '1.5rem', margin: '0 0 0.5rem 0', color: 'var(--accent-primary)' }}>Admin Settings</h3>
         </Link>
       </div>
 

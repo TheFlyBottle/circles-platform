@@ -1,6 +1,7 @@
+import { AuthError } from 'next-auth';
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { validateAdminLogin } from '@/lib/auth';
+import { signIn } from '@/auth';
+import { getAdminProfileByEmail } from '@/lib/admin-auth';
 
 export async function POST(req) {
   try {
@@ -10,25 +11,29 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 });
     }
 
-    const admin = validateAdminLogin(email, password);
-    if (!admin) {
+    const redirectUrl = await signIn('credentials', {
+      email,
+      password,
+      redirect: false
+    });
+
+    const resultUrl = new URL(redirectUrl, req.url);
+    if (resultUrl.searchParams.has('error')) {
       return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
     }
 
-    const cookieStore = await cookies();
-    cookieStore.set({
-      name: 'admin_token',
-      value: `static-admin:${admin.email}`,
-      httpOnly: true,
-      path: '/',
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 // 24 hours
+    const admin = await getAdminProfileByEmail(email);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Logged in successfully.',
+      forcePasswordChange: Boolean(admin?.forcePasswordChange)
     });
-
-    return NextResponse.json({ success: true, message: 'Logged in successfully.' });
-
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
+    }
+
     console.error('Login Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

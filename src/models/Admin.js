@@ -6,12 +6,13 @@ const AdminSchema = new mongoose.Schema({
   email: { 
     type: String, 
     required: true, 
-    unique: true,
-    match: [/@theflybottle\.org$/, 'Email must end with @theflybottle.org']
+    unique: true
   },
   password: { type: String, required: true },
   position: { type: String },
   department: { type: String },
+  role: { type: String, enum: ['admin', 'super_admin'], default: 'admin' },
+  forcePasswordChange: { type: Boolean, default: false },
 }, { timestamps: true });
 
 export default mongoose.models.Admin || mongoose.model('Admin', AdminSchema);

@@ -70,11 +70,11 @@ export default function Register() {
         </div>
         
         <div className="form-group">
-          <label>Email Address (@theflybottle.org required)</label>
+          <label>Email Address</label>
           <input 
             type="email" className="form-control" 
             value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}
-            required pattern=".*@theflybottle\.org$" title="Must end with @theflybottle.org"
+            required
           />
         </div>
 
