@@ -80,10 +80,10 @@ export default function CircleDetails({ params }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ telegramLink })
       });
-      
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
+
       setSuccess(data.message || 'Telegram link updated successfully.');
       fetchData(); // refresh to show updated notified statuses
     } catch (err) {
@@ -106,7 +106,7 @@ export default function CircleDetails({ params }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
+
       setCircle({ ...circle, status: newStatus });
       setSuccess(`Status updated to ${newStatus}.`);
     } catch (err) {
@@ -119,7 +119,7 @@ export default function CircleDetails({ params }) {
   const handleCapacityUpdate = async () => {
     let parsedCapacity = parseInt(capacityInput, 10);
     if (isNaN(parsedCapacity) || parsedCapacity < 0) parsedCapacity = 0;
-    
+
     if (parsedCapacity === circle.capacity) {
       setCapacityInput(parsedCapacity);
       return;
@@ -136,7 +136,7 @@ export default function CircleDetails({ params }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
+
       setCircle({ ...circle, capacity: parsedCapacity });
       setCapacityInput(parsedCapacity);
       setSuccess(`Capacity updated to ${parsedCapacity === 0 ? 'Unlimited' : parsedCapacity}.`);
@@ -155,7 +155,7 @@ export default function CircleDetails({ params }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
+
       router.push('/admin/dashboard');
     } catch (err) {
       setError(`Error deleting circle: ${err.message}`);
@@ -175,10 +175,10 @@ export default function CircleDetails({ params }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subject: emailSubject, message: emailMessage })
       });
-      
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
+
       setEmailSuccess(`Email successfully sent to ${data.count} members!`);
       setEmailSubject('');
       setEmailMessage('');
@@ -221,11 +221,11 @@ export default function CircleDetails({ params }) {
           <div className="flex items-center gap-4" style={{ color: 'var(--text-secondary)' }}>
             <span>Slug: /{circle.slug}</span>
             <span className="flex items-center">
-              Status: 
-              <select 
-                value={circle.status} 
-                onChange={handleStatusChange} 
-                className="form-control" 
+              Status:
+              <select
+                value={circle.status}
+                onChange={handleStatusChange}
+                className="form-control"
                 style={{ marginLeft: '0.5rem', padding: '0.2rem 1rem 0.2rem 0.5rem', height: 'auto', background: 'transparent', color: 'var(--accent-primary)', fontWeight: 'bold' }}
                 disabled={updateLoading}
               >
@@ -235,19 +235,20 @@ export default function CircleDetails({ params }) {
               </select>
             </span>
             <span className="flex items-center">
-              Capacity (0=Unl): 
-              <input 
+              Capacity (0=Unl):
+              <input
                 type="number"
                 min="0"
-                value={capacityInput} 
+                value={capacityInput}
                 onChange={(e) => setCapacityInput(e.target.value)}
                 onBlur={handleCapacityUpdate}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleCapacityUpdate(); }}
-                className="form-control" 
+                className="form-control"
                 style={{ marginLeft: '0.5rem', width: '80px', padding: '0.2rem 0.5rem', height: 'auto', background: 'transparent', color: 'var(--accent-primary)', fontWeight: 'bold' }}
                 disabled={updateLoading}
                 title="Enter 0 for Unlimited"
-              />
+
+              />
             </span>
           </div>
         </div>
@@ -263,15 +264,15 @@ export default function CircleDetails({ params }) {
 
       <div className="card mb-8">
         <h3 className="font-serif" style={{ marginBottom: '1rem', fontSize: '1.25rem' }}>Telegram Invitation Configuration</h3>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+        {/* <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
           When you add or update the Telegram invite link, the system will automatically send an invitation email to all existing registered users who have not yet received one.
-        </p>
-        
+        </p> */}
+
         <form onSubmit={handleUpdateLink} className="flex gap-4 items-end">
           <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
             <label>Telegram Group Link</label>
-            <input 
-              type="url" className="form-control" 
+            <input
+              type="url" className="form-control"
               value={telegramLink} onChange={(e) => setTelegramLink(e.target.value)}
               placeholder="https://t.me/+joinlink"
             />
@@ -285,7 +286,7 @@ export default function CircleDetails({ params }) {
       <div className="card mb-8">
         <h3 className="font-serif" style={{ marginBottom: '1rem', fontSize: '1.25rem' }}>Send Mass Email to Members</h3>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-          Send a custom email to all {submissions.length} registered members of this circle. Emails are sent securely using BCC.
+          Send a custom email to all {submissions.length} registered members of this circle.
         </p>
 
         {emailError && <div className="alert alert-error mb-4">{emailError}</div>}
@@ -294,8 +295,8 @@ export default function CircleDetails({ params }) {
         <form onSubmit={handleSendEmail} className="flex flex-col gap-4">
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label>Subject</label>
-            <input 
-              type="text" className="form-control dir-rtl" 
+            <input
+              type="text" className="form-control dir-rtl"
               value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)}
               placeholder="e.g., Update on Circle Schedule"
               required
@@ -303,8 +304,8 @@ export default function CircleDetails({ params }) {
           </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label>Message</label>
-            <textarea 
-              className="form-control dir-rtl" 
+            <textarea
+              className="form-control dir-rtl"
               value={emailMessage} onChange={(e) => setEmailMessage(e.target.value)}
               placeholder="Your message here..."
               rows="5"
