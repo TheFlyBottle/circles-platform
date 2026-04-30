@@ -35,6 +35,17 @@ function formatAction(action) {
   return ACTION_LABELS[action] || action;
 }
 
+function TrashIcon({ size = 16 }) {
+  return (
+    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+      <line x1="10" y1="11" x2="10" y2="17"></line>
+      <line x1="14" y1="11" x2="14" y2="17"></line>
+    </svg>
+  );
+}
+
 export default function AdminSettings() {
   const router = useRouter();
   const [admins, setAdmins] = useState([]);
@@ -380,16 +391,11 @@ export default function AdminSettings() {
         <div className="card mb-8" style={{ padding: 0, overflow: 'hidden' }}>
           <div className="flex justify-between items-center" style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
             <h3 className="font-serif" style={{ margin: 0, fontSize: '1.25rem' }}>Activity Log</h3>
-            <div className="flex gap-2">
-              {canRemoveAdmins && (
-                <button type="button" className="btn-secondary" onClick={handleClearLogs} disabled={clearingLogs || logsLoading || auditLogs.length === 0} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}>
-                  {clearingLogs ? 'Clearing...' : 'Clear All'}
-                </button>
-              )}
-              <button type="button" className="btn-secondary" onClick={loadAuditLogs} disabled={logsLoading} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                {logsLoading ? 'Refreshing...' : 'Refresh'}
+            {canRemoveAdmins && (
+              <button type="button" className="btn-secondary" onClick={handleClearLogs} disabled={clearingLogs || logsLoading || auditLogs.length === 0} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}>
+                {clearingLogs ? 'Clearing...' : 'Clear All'}
               </button>
-            </div>
+            )}
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="data-table">
@@ -428,10 +434,18 @@ export default function AdminSettings() {
                         {log.details?.deletedSubmissions ? `Deleted ${log.details.deletedSubmissions} submissions` : ''}
                         {!log.details?.updatedFields?.length && !log.details?.status && !log.details?.recipientCount && !log.details?.deletedSubmissions ? 'Recorded' : ''}
                       </td>
-                      {canRemoveAdmins && (
+                        {canRemoveAdmins && (
                         <td style={{ textAlign: 'right' }}>
-                          <button type="button" className="btn-secondary" onClick={() => handleDeleteLog(log)} disabled={deletingLogId === log._id} style={{ color: 'var(--danger)', borderColor: 'var(--danger)', padding: '0.35rem 0.7rem', fontSize: '0.8rem' }}>
-                            {deletingLogId === log._id ? 'Deleting...' : 'Delete'}
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            onClick={() => handleDeleteLog(log)}
+                            disabled={deletingLogId === log._id}
+                            aria-label="Delete activity log"
+                            title={deletingLogId === log._id ? 'Deleting activity log' : 'Delete activity log'}
+                            style={{ color: 'var(--danger)', borderColor: 'var(--danger)', width: '34px', height: '34px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <TrashIcon size={15} />
                           </button>
                         </td>
                       )}
@@ -494,8 +508,16 @@ export default function AdminSettings() {
                       <td>{admin.position || admin.department || 'Not provided'}</td>
                       <td style={{ textAlign: 'right' }}>
                         {canDelete ? (
-                          <button type="button" className="btn-secondary" onClick={() => handleDeleteAdmin(admin)} disabled={deletingId === admin._id} style={{ color: 'var(--danger)', borderColor: 'var(--danger)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-                            {deletingId === admin._id ? 'Removing...' : 'Remove'}
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            onClick={() => handleDeleteAdmin(admin)}
+                            disabled={deletingId === admin._id}
+                            aria-label={`Remove admin ${admin.name || admin.email}`}
+                            title={deletingId === admin._id ? 'Removing admin' : 'Remove admin'}
+                            style={{ color: 'var(--danger)', borderColor: 'var(--danger)', width: '34px', height: '34px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <TrashIcon size={15} />
                           </button>
                         ) : (
                           <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{isCurrentAdmin ? 'You' : 'Locked'}</span>
