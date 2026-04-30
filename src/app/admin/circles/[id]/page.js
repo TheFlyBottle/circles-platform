@@ -156,7 +156,7 @@ export default function CircleDetails({ params }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      router.push('/admin/dashboard');
+      router.push('/admin/circles');
     } catch (err) {
       setError(`Error deleting circle: ${err.message}`);
       setDeletingId(null);
