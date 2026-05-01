@@ -16,6 +16,8 @@ export default function CircleDetails({ params }) {
   const [telegramLink, setTelegramLink] = useState('');
   const [capacityInput, setCapacityInput] = useState(0);
   const [deletingId, setDeletingId] = useState(null);
+  const [confirmingMemberId, setConfirmingMemberId] = useState(null);
+  const [deletingMemberId, setDeletingMemberId] = useState(null);
 
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
@@ -163,6 +165,28 @@ export default function CircleDetails({ params }) {
     }
   };
 
+  const handleDeleteMember = async (submission) => {
+    setDeletingMemberId(submission._id);
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await fetch(`/api/admin/circles/${id}/members/${submission._id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setSubmissions((current) => current.filter((item) => item._id !== submission._id));
+      setConfirmingMemberId(null);
+      setSuccess(`${submission.fullName || submission.email} was removed from this circle.`);
+    } catch (err) {
+      setError(`Error removing member: ${err.message}`);
+    } finally {
+      setDeletingMemberId(null);
+    }
+  };
+
   const handleSendEmail = async (e) => {
     e.preventDefault();
     setEmailLoading(true);
@@ -208,7 +232,7 @@ export default function CircleDetails({ params }) {
                 </button>
               </div>
             ) : (
-              <button onClick={() => setDeletingId(id)} className="btn-secondary flex items-center justify-center" style={{ padding: '0.4rem', color: 'var(--danger)', borderColor: 'var(--danger)', borderRadius: '50%' }} title="Delete Circle">
+              <button onClick={() => setDeletingId(id)} className="btn-secondary flex items-center justify-center" style={{ width: '36px', height: '36px', padding: 0, color: 'var(--danger)', borderColor: 'var(--danger)', borderRadius: '50%', flexShrink: 0 }} title="Delete Circle">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
                   <polyline points="3 6 5 6 21 6"></polyline>
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -321,7 +345,7 @@ export default function CircleDetails({ params }) {
       </div>
 
       <div className="card">
-        <h3 className="font-serif" style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Registered Submissions ({submissions.length})</h3>
+        <h3 className="font-serif" style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Registered Members ({submissions.length})</h3>
         {submissions.length === 0 ? (
           <p style={{ color: 'var(--text-secondary)' }}>No submissions for this circle yet.</p>
         ) : (
@@ -336,6 +360,7 @@ export default function CircleDetails({ params }) {
                   <th>Field</th>
                   <th>Notified (TG)</th>
                   <th>Date</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -355,6 +380,46 @@ export default function CircleDetails({ params }) {
                     </td>
                     <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                       {new Date(sub.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      {confirmingMemberId === sub._id ? (
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMember(sub)}
+                            disabled={deletingMemberId === sub._id}
+                            className="btn-primary"
+                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem', background: 'var(--danger)', border: 'none' }}
+                          >
+                            {deletingMemberId === sub._id ? 'Removing...' : 'Confirm'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmingMemberId(null)}
+                            disabled={deletingMemberId === sub._id}
+                            className="btn-secondary"
+                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingMemberId(sub._id)}
+                          className="btn-secondary flex items-center justify-center"
+                          style={{ width: '32px', height: '32px', padding: 0, color: 'var(--danger)', borderColor: 'var(--danger)', borderRadius: '50%', flexShrink: 0 }}
+                          aria-label={`Remove ${sub.fullName || sub.email} from circle`}
+                          title="Remove member"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                          </svg>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
