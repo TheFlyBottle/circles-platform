@@ -427,7 +427,7 @@ export default function AdminSettings() {
                         <div style={{ fontWeight: 500 }}>{log.resourceLabel || log.resourceType}</div>
                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{log.resourceType}</div>
                       </td>
-                      <td style={{ maxWidth: '260px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      <td style={{ maxWidth: '400px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                         {log.details?.updatedFields?.length ? `Fields: ${log.details.updatedFields.join(', ')}` : ''}
                         {log.details?.status ? `Status: ${log.details.previousStatus || 'unknown'} -> ${log.details.status}` : ''}
                         {log.details?.recipientCount ? `Sent to ${log.details.recipientCount} members` : ''}
