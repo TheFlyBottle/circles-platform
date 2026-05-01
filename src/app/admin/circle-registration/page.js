@@ -101,7 +101,7 @@ export default function CircleRegistrationPage() {
                 <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Applicant</th>
                 <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Date</th>
                 <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Status</th>
-                <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-secondary)', textAlign: 'right' }}>Actions</th>
+                <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-secondary)', textAlign: 'center', width: '120px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -126,10 +126,12 @@ export default function CircleRegistrationPage() {
                     <td style={{ padding: '1rem' }}>
                       {getStatusBadge(registration.status)}
                     </td>
-                    <td style={{ padding: '1rem', textAlign: 'right' }}>
-                      <Link href={`/admin/circle-registration/${registration._id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center' }}>
-                        Review
-                      </Link>
+                    <td style={{ padding: '1rem', textAlign: 'center', verticalAlign: 'middle' }}>
+                      <div className="flex gap-4 justify-center items-center" style={{ minHeight: '32px' }}>
+                        <Link href={`/admin/circle-registration/${registration._id}`} className="btn-secondary" style={{ minWidth: '70px', height: '32px', padding: '0 0.8rem', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                          Review
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -29,6 +29,7 @@ const ACTION_LABELS = {
   'circle.delete': 'Deleted circle',
   'circle.member_delete': 'Removed circle member',
   'circle.email_members': 'Emailed circle members',
+  'registration.delete': 'Deleted circle registration',
   'registration.status_update': 'Updated registration status'
 };
 

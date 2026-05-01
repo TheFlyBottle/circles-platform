@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import { getSession } from '@/lib/auth';
 import connectMongo from '@/lib/mongodb';
 import Registration from '@/models/Registration';
@@ -12,6 +13,10 @@ export async function GET(req, { params }) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
+    }
+
     await connectMongo();
     
     const registration = await Registration.findById(id).lean();
@@ -31,6 +36,9 @@ export async function PUT(req, { params }) {
 
     const { id } = await params;
     const { status } = await req.json();
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
+    }
     
     if (!['pending', 'reviewed', 'approved', 'rejected'].includes(status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
@@ -92,6 +100,40 @@ export async function PUT(req, { params }) {
     return NextResponse.json({ success: true, registration: serializeDoc(registration.toObject()) });
   } catch (error) {
     console.error('Update Registration Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req, { params }) {
+  try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { id } = await params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
+    }
+
+    await connectMongo();
+
+    const registration = await Registration.findByIdAndDelete(id).lean();
+    if (!registration) return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
+
+    await recordAdminAction(session, {
+      action: 'registration.delete',
+      resourceType: 'registration',
+      resourceId: registration._id,
+      resourceLabel: registration.circleNameEn,
+      details: {
+        applicant: registration.email,
+        status: registration.status,
+        circleNameFa: registration.circleNameFa
+      }
+    });
+
+    return NextResponse.json({ success: true, message: 'Registration deleted successfully.' });
+  } catch (error) {
+    console.error('Delete Registration Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
