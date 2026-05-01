@@ -55,7 +55,7 @@ export async function sendConfirmationEmail(toEmail, name, circleName) {
       html: `
         <div dir="rtl" style="font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fdfbf7; padding: 40px 20px; color: #2d2d2d; line-height: 1.8;">
           <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(45, 45, 45, 0.08);">
-            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/dibamackie/circles/master/public/circles-bg.png'); background-size: cover; background-position: center;"></div>
+            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/EmailLogo.png'); background-size: cover; background-position: center;"></div>
             <div style="padding: 40px 30px;">
               <h2 style="color: #4a5d4e; margin-top: 0; font-size: 24px; font-weight: bold; text-align: center;">ثبت‌نام موفق</h2>
               <p style="font-size: 16px;">سلام <strong>${name}</strong> عزیز،</p>
@@ -90,7 +90,7 @@ export async function sendTelegramInviteEmail(toEmail, name, circleName, telegra
       html: `
         <div dir="rtl" style="font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fdfbf7; padding: 40px 20px; color: #2d2d2d; line-height: 1.8;">
           <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(45, 45, 45, 0.08);">
-            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/dibamackie/circles/master/public/EmailLogo.jpg'); background-size: cover; background-position: center;"></div>
+            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/EmailLogo.png'); background-size: cover; background-position: center;"></div>
             <div style="padding: 40px 30px;">
               <h2 style="color: #4a5d4e; margin-top: 0; font-size: 24px; font-weight: bold; text-align: center;">دعوت‌نامه گروه تلگرام</h2>
               <p style="font-size: 16px;">سلام <strong>${name}</strong> عزیز،</p>
@@ -135,7 +135,7 @@ export async function sendCustomEmail(emails, subject, messageHtml, circleName) 
     const htmlContent = `
         <div dir="rtl" style="font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fdfbf7; padding: 40px 20px; color: #2d2d2d; line-height: 1.8;">
           <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(45, 45, 45, 0.08);">
-            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/dibamackie/circles/master/public/EmailLogo.jpg'); background-size: cover; background-position: center;"></div>
+            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/EmailLogo.png'); background-size: cover; background-position: center;"></div>
             <div style="padding: 40px 30px;">
               <h2 style="color: #4a5d4e; margin-top: 0; font-size: 24px; font-weight: bold; text-align: center;">پیام جدید: ${circleName}</h2>
               
