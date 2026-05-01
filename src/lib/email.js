@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_test123');
 
-const SENDER_EMAIL = 'Fly Bottle <noreply@theflybottle.org>';
+const SENDER_EMAIL = 'The Fly Bottle <noreply@theflybottle.org>';
 const NEW_CIRCLE_NOTIFICATION_EMAIL = 'circleadmins@theflybottle.org';
 const SUPER_ADMIN_EMAIL = 'diba.makki@theflybottle.org';
 
