@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY || 're_test123');
 
 const SENDER_EMAIL = 'The Fly Bottle <noreply@theflybottle.org>';
-const NEW_CIRCLE_NOTIFICATION_EMAIL = 'circleadmins@theflybottle.org';
+const NEW_CIRCLE_NOTIFICATION_EMAIL = 'diba.makki@theflybottle.org';
 const SUPER_ADMIN_EMAIL = 'diba.makki@theflybottle.org';
 
 function escapeHtml(value) {
@@ -222,6 +222,108 @@ export async function sendNewCircleRegistrationNotification(registration) {
     return true;
   } catch (error) {
     console.error('New circle registration notification email error:', error);
+    return false;
+  }
+}
+
+export async function sendCircleSetupFormEmail(toEmail, name, circleName, setupUrl) {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Simulating circle setup form email... missing RESEND_API_KEY', {
+        to: toEmail,
+        circleName,
+        setupUrl
+      });
+      return true;
+    }
+
+    await resend.emails.send({
+      from: SENDER_EMAIL,
+      to: [toEmail],
+      subject: `فرم تکمیل اطلاعات حلقه: ${circleName}`,
+      html: `
+        <div dir="rtl" style="font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; max-width: 640px; margin: 0 auto; background-color: #fdfbf7; padding: 40px 20px; color: #2d2d2d; line-height: 1.8;">
+          <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(45, 45, 45, 0.08);">
+            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/EmailLogo.png'); background-size: cover; background-position: center;"></div>
+            <div style="padding: 40px 30px;">
+              <h2 style="color: #4a5d4e; margin-top: 0; font-size: 24px; font-weight: bold; text-align: center;">فرم تکمیل اطلاعات حلقه</h2>
+              <p style="font-size: 16px;">سلام <strong>${escapeHtml(name)}</strong> عزیز،</p>
+              <p style="font-size: 16px;">پیشنهاد حلقه <strong>${escapeHtml(circleName)}</strong> تایید شده است. لطفاً برای تکمیل اطلاعات عمومی حلقه و ساخت صفحه ثبت‌نام، فرم زیر را پر کنید.</p>
+
+              <div style="text-align: center; margin: 36px 0;">
+                <a href="${escapeHtml(setupUrl)}" style="background-color: #4a5d4e; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; display: inline-block;">
+                  تکمیل فرم اطلاعات حلقه
+                </a>
+              </div>
+
+              <p style="font-size: 14px; color: #5a5a5a; text-align: center;">
+                اگر دکمه بالا کار نمی‌کند، این لینک را در مرورگر خود باز کنید:<br/>
+                <a href="${escapeHtml(setupUrl)}" style="color: #a73c3c; word-break: break-all; display: inline-block; margin-top: 10px;" dir="ltr">${escapeHtml(setupUrl)}</a>
+              </p>
+
+              <hr style="border: 0; border-top: 1px solid #e5e0d8; margin: 30px 0;" />
+              <p style="font-size: 14px; color: #5a5a5a; text-align: center; margin-bottom: 0;">
+                با احترام،<br/>تیم حلقه‌های مگس در بطری
+              </p>
+            </div>
+          </div>
+        </div>
+      `
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Circle setup form email error:', error);
+    return false;
+  }
+}
+
+export async function sendCircleCreatedFromSetupEmail(registration, circle, circleUrl) {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Simulating circle created from setup email... missing RESEND_API_KEY', {
+        to: SUPER_ADMIN_EMAIL,
+        circleName: circle.name,
+        circleUrl,
+        organizer: registration.fullName,
+        email: registration.email
+      });
+      return true;
+    }
+
+    await resend.emails.send({
+      from: SENDER_EMAIL,
+      to: [SUPER_ADMIN_EMAIL],
+      subject: `Circle created from follow-up form: ${circle.name}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 680px; margin: 0 auto; background-color: #fdfbf7; padding: 32px 20px; color: #2d2d2d; line-height: 1.6;">
+          <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 12px; overflow: hidden;">
+            <div style="padding: 28px;">
+              <h2 style="color: #4a5d4e; margin: 0 0 12px; font-size: 22px;">Follow-up form submitted</h2>
+              <p style="font-size: 15px; margin: 0 0 24px;">The host completed the follow-up form and a new circle was created.</p>
+
+              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                ${formatRegistrationField('Circle name', circle.name)}
+                ${formatRegistrationField('Circle link', circleUrl)}
+                ${formatRegistrationField('Capacity', circle.capacity === 0 ? 'Unlimited' : circle.capacity)}
+                ${formatRegistrationField('Organizer name', registration.fullName)}
+                ${formatRegistrationField('Organizer email', registration.email)}
+              </table>
+
+              <div style="text-align: center; margin: 30px 0 8px;">
+                <a href="${escapeHtml(circleUrl)}" style="background-color: #4a5d4e; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 24px; font-weight: bold; display: inline-block;">
+                  Open circle registration form
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Circle created from setup email error:', error);
     return false;
   }
 }

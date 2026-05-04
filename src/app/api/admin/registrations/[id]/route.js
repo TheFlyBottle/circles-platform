@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 import { getSession } from '@/lib/auth';
 import connectMongo from '@/lib/mongodb';
 import Registration from '@/models/Registration';
-import Circle from '@/models/Circle';
 import { serializeDoc } from '@/lib/serialize';
 import { recordAdminAction } from '@/lib/audit-log';
+import { sendCircleSetupFormEmail } from '@/lib/email';
 
 export async function GET(req, { params }) {
   try {
@@ -55,36 +56,34 @@ export async function PUT(req, { params }) {
     }
 
     registration.status = status;
-    await registration.save();
+
+    let setupFormEmailSent = false;
 
     if (status === 'approved') {
-      const baseSlug = registration.circleNameEn.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-      let finalSlug = baseSlug;
-      let counter = 1;
-      
-      while (await Circle.exists({ slug: finalSlug })) {
-        finalSlug = `${baseSlug}-${counter}`;
-        counter++;
-      }
+      if (!registration.setupSubmittedAt) {
+        registration.setupToken = crypto.randomBytes(32).toString('hex');
+        registration.setupEmailSentAt = new Date();
+        await registration.save();
 
-      const circle = await Circle.create({
-        name: registration.circleNameEn,
-        slug: finalSlug,
-        status: 'active',
-        capacity: 0,
-        telegramLink: ''
-      });
-      await recordAdminAction(session, {
-        action: 'circle.create_from_registration',
-        resourceType: 'circle',
-        resourceId: circle._id,
-        resourceLabel: circle.name,
-        details: {
-          registrationId: String(registration._id),
-          slug: circle.slug
+        const setupUrl = new URL(`/registration/setup/${registration._id}`, new URL(req.url).origin);
+        setupUrl.searchParams.set('token', registration.setupToken);
+        setupFormEmailSent = await sendCircleSetupFormEmail(
+          registration.email,
+          registration.fullName,
+          registration.circleNameEn || registration.circleNameFa,
+          setupUrl.toString()
+        );
+
+        if (!setupFormEmailSent) {
+          return NextResponse.json({ error: 'Registration approved, but the setup form email could not be sent.' }, { status: 500 });
         }
-      });
+      } else {
+        await registration.save();
+      }
+    } else {
+      await registration.save();
     }
+
     await recordAdminAction(session, {
       action: 'registration.status_update',
       resourceType: 'registration',
@@ -93,7 +92,8 @@ export async function PUT(req, { params }) {
       details: {
         previousStatus,
         status,
-        applicant: registration.email
+        applicant: registration.email,
+        setupFormEmailSent
       }
     });
 

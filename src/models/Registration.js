@@ -17,6 +17,11 @@ const RegistrationSchema = new mongoose.Schema({
   expectedDuration: { type: String },
   agreedToTerms: { type: Boolean, required: true },
   status: { type: String, enum: ['pending', 'reviewed', 'approved', 'rejected'], default: 'pending' },
+  setupToken: { type: String },
+  setupEmailSentAt: { type: Date },
+  setupSubmittedAt: { type: Date },
+  setupDetails: { type: mongoose.Schema.Types.Mixed },
+  circleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Circle' },
 }, { timestamps: true });
 
 export default mongoose.models.Registration || mongoose.model('Registration', RegistrationSchema);

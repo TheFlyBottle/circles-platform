@@ -4,6 +4,48 @@ import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+const SETUP_DETAIL_FIELDS = [
+  ['promoteOnSocial', 'Social promotion'],
+  ['showHostName', 'Show host name'],
+  ['socialLink', 'Host social link'],
+  ['capacity', 'Circle capacity'],
+  ['capacityNote', 'Capacity note'],
+  ['conversationLanguages', 'Conversation language(s)'],
+  ['prerequisites', 'Prerequisites'],
+  ['publicIntroduction', 'Public introduction'],
+  ['circleFocus', 'Circle focus'],
+  ['sessionActivities', 'Session activities'],
+  ['schedulePlan', 'Schedule plan'],
+  ['neededSupport', 'Needed support'],
+  ['subjects', 'Subjects']
+];
+
+function formatDetailValue(key, value) {
+  if (value === undefined || value === null || value === '') return 'Not provided';
+  if (key === 'capacity' && Number(value) === 0) return 'Unlimited';
+  if (value === 'yes') return 'Yes';
+  if (value === 'no') return 'No';
+  return String(value);
+}
+
+function formatFileSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function UploadedFileDetail({ label, file }) {
+  return (
+    <div>
+      <strong style={{ color: 'var(--text-secondary)' }}>{label}:</strong>
+      <div style={{ marginTop: '0.25rem' }}>
+        {file?.name ? `${file.name}${file.size ? ` (${formatFileSize(file.size)})` : ''}` : 'Not provided'}
+      </div>
+    </div>
+  );
+}
+
 export default function RegistrationReviewPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
@@ -39,7 +81,7 @@ export default function RegistrationReviewPage({ params }) {
   }, [id, router]);
 
   const handleStatusChange = async (newStatus) => {
-    if (!confirm(`Are you sure you want to mark this registration as ${newStatus}?${newStatus === 'approved' ? ' This will automatically create an active Circle.' : ''}`)) {
+    if (!confirm(`Are you sure you want to mark this registration as ${newStatus}?${newStatus === 'approved' ? ' This will email the host a follow-up form.' : ''}`)) {
       return;
     }
 
@@ -59,8 +101,7 @@ export default function RegistrationReviewPage({ params }) {
       setRegistration(data.registration);
       
       if (newStatus === 'approved') {
-        alert('Registration approved. A new active Circle has been created.');
-        router.push('/admin/circles');
+        alert('Registration approved. The follow-up form was emailed to the host.');
       }
     } catch (err) {
       setError(err.message);
@@ -185,8 +226,51 @@ export default function RegistrationReviewPage({ params }) {
         
         <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--border-color)', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
           <strong>Agreed to Terms:</strong> {registration.agreedToTerms ? 'Yes' : 'No'} <br/>
-          <strong>Submitted On:</strong> {new Date(registration.createdAt).toLocaleString()}
+          <strong>Submitted On:</strong> {new Date(registration.createdAt).toLocaleString()} <br/>
+          {registration.setupEmailSentAt && (
+            <>
+              <strong>Follow-up Form Sent:</strong> {new Date(registration.setupEmailSentAt).toLocaleString()} <br/>
+            </>
+          )}
+          {registration.setupSubmittedAt && (
+            <>
+              <strong>Follow-up Form Submitted:</strong> {new Date(registration.setupSubmittedAt).toLocaleString()} <br/>
+            </>
+          )}
+          {registration.circleId && (
+            <>
+              <strong>Circle ID:</strong> {registration.circleId}
+            </>
+          )}
         </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: '2rem' }}>
+        <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Follow-up Form Details</h3>
+
+        {!registration.setupDetails ? (
+          <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
+            {registration.setupEmailSentAt ? 'The follow-up form has been sent, but it has not been submitted yet.' : 'The follow-up form has not been sent yet.'}
+          </p>
+        ) : (
+          <>
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
+              {SETUP_DETAIL_FIELDS.map(([key, label]) => (
+                <div key={key} className={['publicIntroduction', 'circleFocus', 'sessionActivities', 'schedulePlan', 'neededSupport', 'subjects', 'capacityNote', 'prerequisites'].includes(key) ? 'md:col-span-2' : ''}>
+                  <strong style={{ color: 'var(--text-secondary)' }}>{label}:</strong>
+                  <div className="dir-rtl" style={{ marginTop: '0.25rem', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                    {formatDetailValue(key, registration.setupDetails[key])}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 mt-6 pt-4" style={{ borderTop: '1px solid var(--border-color)' }}>
+              <UploadedFileDetail label="Promotion image/logo" file={registration.setupDetails.promoAsset} />
+              <UploadedFileDetail label="Syllabus or shared file" file={registration.setupDetails.shareFile} />
+            </div>
+          </>
+        )}
       </div>
 
       {registration.status !== 'approved' && (
@@ -208,7 +292,7 @@ export default function RegistrationReviewPage({ params }) {
             onClick={() => handleStatusChange('approved')}
             disabled={actionLoading}
           >
-            {actionLoading ? 'Processing...' : 'Approve & Create Circle'}
+            {actionLoading ? 'Processing...' : 'Approve & Send Form'}
           </button>
         </div>
       )}
