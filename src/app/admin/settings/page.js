@@ -37,6 +37,39 @@ function formatAction(action) {
   return ACTION_LABELS[action] || action;
 }
 
+function formatLogDetails(log) {
+  const details = log.details;
+  if (!details) return 'Recorded';
+
+  const parts = [];
+
+  if (details.updatedFields?.length) {
+    parts.push(`Fields: ${details.updatedFields.join(', ')}`);
+  }
+
+  if (details.status) {
+    parts.push(details.previousStatus ? `Status: ${details.previousStatus} -> ${details.status}` : `Status: ${details.status}`);
+  }
+
+  if (details.slug) {
+    parts.push(`Slug: /${details.slug}`);
+  }
+
+  if (typeof details.capacity === 'number') {
+    parts.push(`Capacity: ${details.capacity === 0 ? 'Unlimited' : details.capacity}`);
+  }
+
+  if (typeof details.recipientCount === 'number') {
+    parts.push(`Sent to ${details.recipientCount} members`);
+  }
+
+  if (typeof details.deletedSubmissions === 'number') {
+    parts.push(`Deleted ${details.deletedSubmissions} submissions`);
+  }
+
+  return parts.length ? parts.join('; ') : 'Recorded';
+}
+
 function TrashIcon({ size = 16 }) {
   return (
     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
@@ -430,11 +463,7 @@ export default function AdminSettings() {
                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{log.resourceType}</div>
                       </td>
                       <td style={{ maxWidth: '400px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                        {log.details?.updatedFields?.length ? `Fields: ${log.details.updatedFields.join(', ')}` : ''}
-                        {log.details?.status ? `Status: ${log.details.previousStatus || 'unknown'} -> ${log.details.status}` : ''}
-                        {log.details?.recipientCount ? `Sent to ${log.details.recipientCount} members` : ''}
-                        {log.details?.deletedSubmissions ? `Deleted ${log.details.deletedSubmissions} submissions` : ''}
-                        {!log.details?.updatedFields?.length && !log.details?.status && !log.details?.recipientCount && !log.details?.deletedSubmissions ? 'Recorded' : ''}
+                        {formatLogDetails(log)}
                       </td>
                         {canRemoveAdmins && (
                         <td style={{ textAlign: 'right' }}>
