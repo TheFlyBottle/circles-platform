@@ -10,6 +10,7 @@ const SETUP_DETAIL_FIELDS = [
   ['socialLink', 'Host social link'],
   ['capacity', 'Circle capacity'],
   ['capacityNote', 'Capacity note'],
+  ['promoAssetUrl', 'Promotion image/logo link'],
   ['conversationLanguages', 'Conversation language(s)'],
   ['prerequisites', 'Prerequisites'],
   ['publicIntroduction', 'Public introduction'],
@@ -44,6 +45,18 @@ function UploadedFileDetail({ label, file }) {
       </div>
     </div>
   );
+}
+
+function DetailValue({ value }) {
+  if (typeof value === 'string' && /^https?:\/\//i.test(value)) {
+    return (
+      <a href={value} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)', wordBreak: 'break-word' }}>
+        {value}
+      </a>
+    );
+  }
+
+  return value;
 }
 
 export default function RegistrationReviewPage({ params }) {
@@ -259,14 +272,13 @@ export default function RegistrationReviewPage({ params }) {
                 <div key={key} className={['publicIntroduction', 'circleFocus', 'sessionActivities', 'schedulePlan', 'neededSupport', 'subjects', 'capacityNote', 'prerequisites'].includes(key) ? 'md:col-span-2' : ''}>
                   <strong style={{ color: 'var(--text-secondary)' }}>{label}:</strong>
                   <div className="dir-rtl" style={{ marginTop: '0.25rem', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                    {formatDetailValue(key, registration.setupDetails[key])}
+                    <DetailValue value={formatDetailValue(key, registration.setupDetails[key])} />
                   </div>
                 </div>
               ))}
             </div>
 
             <div className="grid md:grid-cols-2 gap-4 mt-6 pt-4" style={{ borderTop: '1px solid var(--border-color)' }}>
-              <UploadedFileDetail label="Promotion image/logo" file={registration.setupDetails.promoAsset} />
               <UploadedFileDetail label="Syllabus or shared file" file={registration.setupDetails.shareFile} />
             </div>
           </>

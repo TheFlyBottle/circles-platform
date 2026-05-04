@@ -3,10 +3,39 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 
+const SUBJECT_OPTIONS = [
+  'ادبیات Literature',
+  'اقتصاد Economy',
+  'انسان‌شناسی Anthropology',
+  'تاریخ History',
+  'جامعه‌شناسی Sociology',
+  'جغرافیا Geography',
+  'حقوق Law',
+  'خدمات اجتماعی Social Services',
+  'روابط بین‌الملل International Relations',
+  'روان‌شناسی Psychology',
+  'زبان‌شناسی Linguistics',
+  'سایر هنرها Other Arts',
+  'علوم تربیتی Education',
+  'علوم سیاسی Political Science',
+  'فلسفه Philosophy',
+  'مطالعات جنسیت Gender Studies',
+  'مطالعات دینی Religious Studies',
+  'مطالعات فرهنگی Cultural Studies',
+  'مطالعات رسانه Media Studies',
+  'مطالعات علم و فناوری Science and Technology Studies',
+  'مطالعات فیلم Film Studies',
+  'مطالعات محیط زیست Environmental Studies',
+  'معماری Architecture',
+  'مدیریت Management',
+  'موسیقی Music',
+  'سلامت عمومی Public Health'
+];
+
 function Field({ label, children }) {
   return (
-    <div className="form-group text-right" style={{ marginBottom: '1.5rem' }}>
-      <label className="dir-rtl" style={{ display: 'block', lineHeight: 1.8 }}>{label}</label>
+    <div className="form-group" dir="rtl" style={{ marginBottom: '1.5rem', textAlign: 'right' }}>
+      <label style={{ display: 'block', lineHeight: 1.8, textAlign: 'right', direction: 'rtl', unicodeBidi: 'plaintext' }}>{label}</label>
       {children}
     </div>
   );
@@ -15,7 +44,7 @@ function Field({ label, children }) {
 function RadioGroup({ name, label }) {
   return (
     <Field label={label}>
-      <div className="dir-rtl" style={{ display: 'flex', gap: '1.5rem', justifyContent: 'flex-start', flexWrap: 'wrap' }}>
+      <div dir="rtl" style={{ display: 'flex', gap: '1.5rem', justifyContent: 'flex-start', flexWrap: 'wrap', textAlign: 'right' }}>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
           <input type="radio" name={name} value="yes" required />
           بله
@@ -37,6 +66,9 @@ export default function CircleSetupForm({ params, searchParams }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [createdCircle, setCreatedCircle] = useState(null);
+  const [languageChoice, setLanguageChoice] = useState('');
+  const [hasPrerequisites, setHasPrerequisites] = useState('');
+  const [selectedSubjects, setSelectedSubjects] = useState([]);
 
   useEffect(() => {
     let ignore = false;
@@ -69,6 +101,20 @@ export default function CircleSetupForm({ params, searchParams }) {
     try {
       const formData = new FormData(event.currentTarget);
       formData.set('token', token);
+      if (formData.get('conversationLanguages') === 'Other') {
+        formData.set('conversationLanguages', formData.get('otherConversationLanguage') || '');
+      }
+      formData.delete('otherConversationLanguage');
+      if (formData.get('hasPrerequisites') === 'no') {
+        formData.set('prerequisites', 'No');
+      }
+      formData.delete('hasPrerequisites');
+      const subjects = formData.getAll('subjectOptions').map(String);
+      if (subjects.length === 0) {
+        throw new Error('Please select at least one subject.');
+      }
+      formData.set('subjects', subjects.join(', '));
+      formData.delete('subjectOptions');
 
       const res = await fetch(`/api/registrations/${id}/setup`, {
         method: 'POST',
@@ -118,7 +164,7 @@ export default function CircleSetupForm({ params, searchParams }) {
       </header>
 
       <div className="card" style={{ maxWidth: '860px', margin: '0 auto', padding: '2.5rem' }}>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} dir="rtl">
           {error && <div className="alert alert-error mb-6">{error}</div>}
           <input type="hidden" name="token" value={token} />
 
@@ -144,8 +190,8 @@ export default function CircleSetupForm({ params, searchParams }) {
             <textarea name="capacityNote" className="form-control dir-rtl" rows="3" />
           </Field>
 
-          <Field label="اگر عکس یا لوگوی خاصی برای تبلیغ گروه در نظر دارید لطفاً آن را بارگذاری بفرمایید.">
-            <input type="file" name="promoAsset" className="form-control" accept="image/*,.pdf" />
+          <Field label="اگر عکس یا لوگوی خاصی برای تبلیغ گروه در نظر دارید، لطفاً لینک آن را اینجا بگذارید.">
+            <input type="url" name="promoAssetUrl" className="form-control" dir="ltr" placeholder="https://..." />
           </Field>
 
           <Field label="اگر طرح درس یا فایل دیگری دارید که می‌خواهید با داوطلبان عضویت در حلقه به اشتراک بگذارید، لطفاً در اینجا بارگذاری کنید.">
@@ -153,11 +199,52 @@ export default function CircleSetupForm({ params, searchParams }) {
           </Field>
 
           <Field label="زبان(های) اصلی گفتگو">
-            <input type="text" name="conversationLanguages" className="form-control dir-rtl" required />
+            <select
+              name="conversationLanguages"
+              className="form-control"
+              required
+              value={languageChoice}
+              onChange={(event) => setLanguageChoice(event.target.value)}
+            >
+              <option value="">Select language</option>
+              <option value="English">English</option>
+              <option value="Farsi">Farsi</option>
+              <option value="Both">Both</option>
+              <option value="Other">Other</option>
+            </select>
+            {languageChoice === 'Other' && (
+              <input
+                type="text"
+                name="otherConversationLanguage"
+                className="form-control dir-rtl"
+                required
+                placeholder="لطفاً زبان را بنویسید"
+                style={{ marginTop: '0.75rem' }}
+              />
+            )}
           </Field>
 
           <Field label="آیا عضویت در این حلقه پیش‌نیاز خاصی دارد؟">
-            <textarea name="prerequisites" className="form-control dir-rtl" rows="3" />
+            <div dir="rtl" style={{ display: 'flex', gap: '1.5rem', justifyContent: 'flex-start', flexWrap: 'wrap', textAlign: 'right' }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input type="radio" name="hasPrerequisites" value="yes" required checked={hasPrerequisites === 'yes'} onChange={() => setHasPrerequisites('yes')} />
+                بله
+              </label>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input type="radio" name="hasPrerequisites" value="no" required checked={hasPrerequisites === 'no'} onChange={() => setHasPrerequisites('no')} />
+                خیر
+              </label>
+            </div>
+            {hasPrerequisites === 'yes' && (
+              <textarea
+                name="prerequisites"
+                className="form-control dir-rtl"
+                rows="3"
+                required
+                placeholder="لطفاً پیش‌نیازها را بنویسید"
+                style={{ marginTop: '0.75rem' }}
+              />
+            )}
           </Field>
 
           <Field label="لطفاً برای نمایش در وب‌سایت، معرفی عمومی و کاملی از حلقهٔ خود بنویسید. متن را به فارسی یا انگلیسی بنویسید و لطفاً آن را در حدود ۱۵۰ تا ۲۰۰ واژه نگه دارید.">
@@ -181,7 +268,42 @@ export default function CircleSetupForm({ params, searchParams }) {
           </Field>
 
           <Field label="لطفاً همه‌ی موضوعاتی که به حلقه‌ی مورد نظر شما مربوط است را انتخاب کنید یا بنویسید.">
-            <textarea name="subjects" className="form-control dir-rtl" rows="3" required />
+            <div
+              dir="rtl"
+              className="grid md:grid-cols-2 gap-3"
+              style={{ marginTop: '0.75rem', textAlign: 'right' }}
+            >
+              {SUBJECT_OPTIONS.map((subject) => (
+                <label
+                  key={subject}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.6rem',
+                    padding: '0.6rem 0.75rem',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--border-radius)',
+                    cursor: 'pointer',
+                    background: selectedSubjects.includes(subject) ? 'rgba(74, 93, 78, 0.08)' : 'transparent'
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    name="subjectOptions"
+                    value={subject}
+                    checked={selectedSubjects.includes(subject)}
+                    onChange={(event) => {
+                      setSelectedSubjects((current) => (
+                        event.target.checked
+                          ? [...current, subject]
+                          : current.filter((item) => item !== subject)
+                      ));
+                    }}
+                  />
+                  <span>{subject}</span>
+                </label>
+              ))}
+            </div>
           </Field>
 
           <button type="submit" className="btn-primary w-full" style={{ padding: '1.1rem', fontSize: '1.05rem' }} disabled={submitting}>

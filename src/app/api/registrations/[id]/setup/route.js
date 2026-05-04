@@ -116,7 +116,7 @@ export async function POST(req, { params }) {
       schedulePlan: getText(formData, 'schedulePlan'),
       neededSupport: getText(formData, 'neededSupport'),
       subjects: getText(formData, 'subjects'),
-      promoAsset: await readUpload(formData, 'promoAsset'),
+      promoAssetUrl: getText(formData, 'promoAssetUrl'),
       shareFile: await readUpload(formData, 'shareFile')
     };
 
