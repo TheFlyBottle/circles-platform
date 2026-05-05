@@ -256,6 +256,7 @@ export default function CircleDetails({ params }) {
 
                 <option value="active">active</option>
                 <option value="closed">closed</option>
+                <option value="archived">archived</option>
               </select>
             </span>
             <span className="flex items-center">

@@ -81,6 +81,7 @@ export default function NewCircle() {
             <select className="form-control" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
               <option value="active">Active (Open)</option>
               <option value="closed">Closed</option>
+              <option value="archived">Archived</option>
             </select>
           </div>
           

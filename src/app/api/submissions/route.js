@@ -24,6 +24,9 @@ export async function POST(req) {
     const circle = await Circle.findById(data.circleId);
     
     if (!circle) return NextResponse.json({ error: 'Circle does not exist.' }, { status: 400 });
+    if (circle.status === 'archived') {
+      return NextResponse.json({ error: 'Circle does not exist.' }, { status: 400 });
+    }
 
     if (circle.capacity > 0) {
         const count = await Submission.countDocuments({ circleId: circle._id });

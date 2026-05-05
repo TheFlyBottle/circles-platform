@@ -5,6 +5,8 @@ import Circle from '@/models/Circle';
 import { serializeDoc, serializeDocs } from '@/lib/serialize';
 import { recordAdminAction } from '@/lib/audit-log';
 
+const CIRCLE_STATUSES = ['active', 'closed', 'archived'];
+
 export async function GET(req) {
   try {
     const session = await getSession();
@@ -30,6 +32,10 @@ export async function POST(req) {
 
     if (!name || !slug) {
       return NextResponse.json({ error: 'Name and slug are required.' }, { status: 400 });
+    }
+
+    if (status && !CIRCLE_STATUSES.includes(status)) {
+      return NextResponse.json({ error: 'Invalid circle status.' }, { status: 400 });
     }
 
     await connectMongo();

@@ -9,7 +9,7 @@ export async function GET(req, { params }) {
     const { slug } = await params;
     await connectMongo();
     
-    const circle = await Circle.findOne({ slug }).lean();
+    const circle = await Circle.findOne({ slug, status: { $ne: 'archived' } }).lean();
 
     if (!circle) {
       return NextResponse.json({ error: 'Circle not found' }, { status: 404 });

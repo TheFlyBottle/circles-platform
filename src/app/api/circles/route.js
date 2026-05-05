@@ -8,7 +8,7 @@ export async function GET() {
   try {
     await connectMongo();
     
-    const circles = await Circle.find({})
+    const circles = await Circle.find({ status: { $ne: 'archived' } })
       .sort({ createdAt: -1 })
       .lean();
 

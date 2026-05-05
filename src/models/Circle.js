@@ -5,7 +5,7 @@ const CircleSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true },
   status: { 
     type: String, 
-    enum: ['active', 'closed'],
+    enum: ['active', 'closed', 'archived'],
     default: 'active'
   },
   capacity: { type: Number, default: 0 }, // 0 means unlimited

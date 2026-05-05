@@ -8,6 +8,8 @@ import { serializeDoc, serializeDocs } from '@/lib/serialize';
 import { sendTelegramInviteEmail } from '@/lib/email';
 import { recordAdminAction } from '@/lib/audit-log';
 
+const CIRCLE_STATUSES = ['active', 'closed', 'archived'];
+
 export async function GET(req, { params }) {
   try {
     const session = await getSession();
@@ -41,6 +43,10 @@ export async function PUT(req, { params }) {
     const data = await req.json();
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: 'Circle not found' }, { status: 404 });
+    }
+
+    if (data.status && !CIRCLE_STATUSES.includes(data.status)) {
+      return NextResponse.json({ error: 'Invalid circle status.' }, { status: 400 });
     }
 
     await connectMongo();
