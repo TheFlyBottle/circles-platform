@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
+import { UploadButton } from '@/lib/uploadthing';
 
 const SUBJECT_OPTIONS = [
   'ادبیات Literature',
@@ -69,6 +70,8 @@ export default function CircleSetupForm({ params, searchParams }) {
   const [languageChoice, setLanguageChoice] = useState('');
   const [hasPrerequisites, setHasPrerequisites] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [promoAssetUrl, setPromoAssetUrl] = useState('');
+  const [shareFileData, setShareFileData] = useState(null);
 
   useEffect(() => {
     let ignore = false;
@@ -190,12 +193,114 @@ export default function CircleSetupForm({ params, searchParams }) {
             <textarea name="capacityNote" className="form-control dir-rtl" rows="3" />
           </Field>
 
-          <Field label="اگر عکس یا لوگوی خاصی برای تبلیغ گروه در نظر دارید، لطفاً لینک آن را اینجا بگذارید.">
-            <input type="url" name="promoAssetUrl" className="form-control" dir="ltr" placeholder="https://..." />
+          <Field label="اگر عکس یا لوگوی خاصی برای تبلیغ گروه در نظر دارید، لطفاً آن را اینجا بارگذاری کنید.">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
+              <UploadButton
+                endpoint="imageUploader"
+                onClientUploadComplete={(res) => {
+                  if (res && res[0]) {
+                    setPromoAssetUrl(res[0].url);
+                  }
+                }}
+                onUploadError={(error) => {
+                  alert(`ERROR! ${error.message}`);
+                }}
+                appearance={{
+                  container: {
+                    background: 'transparent'
+                  },
+                  button: {
+                    background: '#ffffff',
+                    color: 'var(--accent-primary)',
+                    border: '1px solid var(--accent-primary)',
+                    fontSize: '0.9rem',
+                    padding: '0.6rem 1.2rem',
+                    width: 'auto'
+                  },
+                  allowedContent: {
+                    fontSize: '0.75rem',
+                    color: 'var(--text-secondary)'
+                  }
+                }}
+                content={{
+                  button({ ready }) {
+                    if (ready) return <div>Upload Image</div>;
+                    return <div>Loading...</div>;
+                  }
+                }}
+              />
+              {promoAssetUrl && (
+                <div style={{ marginTop: '0.5rem' }}>
+                  <img src={promoAssetUrl} alt="Preview" style={{ maxWidth: '150px', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)' }} />
+                  <button 
+                    type="button" 
+                    onClick={() => setPromoAssetUrl('')}
+                    style={{ display: 'block', fontSize: '0.8rem', color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', marginTop: '0.25rem' }}
+                  >
+                    Remove image / تغییر تصویر
+                  </button>
+                </div>
+              )}
+              <input type="hidden" name="promoAssetUrl" value={promoAssetUrl} />
+            </div>
           </Field>
 
           <Field label="اگر طرح درس یا فایل دیگری دارید که می‌خواهید با داوطلبان عضویت در حلقه به اشتراک بگذارید، لطفاً در اینجا بارگذاری کنید.">
-            <input type="file" name="shareFile" className="form-control" accept=".pdf,.doc,.docx,.txt,.rtf,image/*" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
+              <UploadButton
+                endpoint="fileUploader"
+                onClientUploadComplete={(res) => {
+                  if (res && res[0]) {
+                    setShareFileData({
+                      url: res[0].url,
+                      name: res[0].name,
+                      size: res[0].size,
+                      type: res[0].type
+                    });
+                  }
+                }}
+                onUploadError={(error) => {
+                  alert(`ERROR! ${error.message}`);
+                }}
+                appearance={{
+                  container: {
+                    background: 'transparent'
+                  },
+                  button: {
+                    background: '#ffffff',
+                    color: 'var(--accent-primary)',
+                    border: '1px solid var(--accent-primary)',
+                    fontSize: '0.9rem',
+                    padding: '0.6rem 1.2rem',
+                    width: 'auto'
+                  },
+                  allowedContent: {
+                    fontSize: '0.75rem',
+                    color: 'var(--text-secondary)'
+                  }
+                }}
+                content={{
+                  button({ ready }) {
+                    if (ready) return <div>Upload File</div>;
+                    return <div>Loading...</div>;
+                  }
+                }}
+              />
+              {shareFileData && (
+                <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)', background: 'rgba(0,0,0,0.02)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', width: '100%' }}>
+                  <div style={{ fontWeight: 500, color: 'var(--foreground)', marginBottom: '0.25rem' }}>File uploaded:</div>
+                  <div style={{ wordBreak: 'break-all' }}>{shareFileData.name} ({Math.round(shareFileData.size / 1024)} KB)</div>
+                  <button 
+                    type="button" 
+                    onClick={() => setShareFileData(null)}
+                    style={{ display: 'block', fontSize: '0.8rem', color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', marginTop: '0.5rem' }}
+                  >
+                    Remove file / حذف فایل
+                  </button>
+                </div>
+              )}
+              <input type="hidden" name="shareFileData" value={shareFileData ? JSON.stringify(shareFileData) : ''} />
+            </div>
           </Field>
 
           <Field label="زبان(های) اصلی گفتگو">

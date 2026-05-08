@@ -102,6 +102,20 @@ export async function POST(req, { params }) {
     }
 
     const capacity = Math.max(parseInt(getText(formData, 'capacity'), 10) || 0, 0);
+    const shareFileDataRaw = getText(formData, 'shareFileData');
+    let shareFile = null;
+    if (shareFileDataRaw) {
+      try {
+        shareFile = JSON.parse(shareFileDataRaw);
+      } catch (e) {
+        console.error('Failed to parse shareFileData:', e);
+      }
+    }
+
+    if (!shareFile) {
+      shareFile = await readUpload(formData, 'shareFile');
+    }
+
     const setupDetails = {
       promoteOnSocial: getText(formData, 'promoteOnSocial'),
       showHostName: getText(formData, 'showHostName'),
@@ -117,7 +131,7 @@ export async function POST(req, { params }) {
       neededSupport: getText(formData, 'neededSupport'),
       subjects: getText(formData, 'subjects'),
       promoAssetUrl: getText(formData, 'promoAssetUrl'),
-      shareFile: await readUpload(formData, 'shareFile')
+      shareFile
     };
 
     const slug = await createUniqueSlug(registration.circleNameEn || registration.circleNameFa);

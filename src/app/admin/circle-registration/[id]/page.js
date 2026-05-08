@@ -37,11 +37,25 @@ function formatFileSize(bytes) {
 }
 
 function UploadedFileDetail({ label, file }) {
+  if (!file?.name) return (
+    <div>
+      <strong style={{ color: 'var(--text-secondary)' }}>{label}:</strong>
+      <div style={{ marginTop: '0.25rem' }}>Not provided</div>
+    </div>
+  );
+
   return (
     <div>
       <strong style={{ color: 'var(--text-secondary)' }}>{label}:</strong>
       <div style={{ marginTop: '0.25rem' }}>
-        {file?.name ? `${file.name}${file.size ? ` (${formatFileSize(file.size)})` : ''}` : 'Not provided'}
+        {file.url ? (
+          <a href={file.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>
+            {file.name}
+          </a>
+        ) : (
+          file.name
+        )}
+        {file.size ? ` (${formatFileSize(file.size)})` : ''}
       </div>
     </div>
   );
