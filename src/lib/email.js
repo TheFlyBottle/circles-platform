@@ -55,7 +55,7 @@ export async function sendConfirmationEmail(toEmail, name, circleName) {
       html: `
         <div dir="rtl" style="font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fdfbf7; padding: 40px 20px; color: #2d2d2d; line-height: 1.8;">
           <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(45, 45, 45, 0.08);">
-            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/EmailLogo.png'); background-size: cover; background-position: center;"></div>
+            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/Email-bg.png'); background-size: cover; background-position: center;"></div>
             <div style="padding: 40px 30px;">
               <h2 style="color: #4a5d4e; margin-top: 0; font-size: 24px; font-weight: bold; text-align: center;">ثبت‌نام موفق</h2>
               <p style="font-size: 16px;">سلام <strong>${name}</strong> عزیز،</p>
@@ -90,7 +90,7 @@ export async function sendTelegramInviteEmail(toEmail, name, circleName, telegra
       html: `
         <div dir="rtl" style="font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fdfbf7; padding: 40px 20px; color: #2d2d2d; line-height: 1.8;">
           <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(45, 45, 45, 0.08);">
-            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/EmailLogo.png'); background-size: cover; background-position: center;"></div>
+            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/email-bg.png'); background-size: cover; background-position: center;"></div>
             <div style="padding: 40px 30px;">
               <h2 style="color: #4a5d4e; margin-top: 0; font-size: 24px; font-weight: bold; text-align: center;">دعوت‌نامه گروه تلگرام</h2>
               <p style="font-size: 16px;">سلام <strong>${name}</strong> عزیز،</p>
@@ -135,7 +135,7 @@ export async function sendCustomEmail(emails, subject, messageHtml, circleName) 
     const htmlContent = `
         <div dir="rtl" style="font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fdfbf7; padding: 40px 20px; color: #2d2d2d; line-height: 1.8;">
           <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(45, 45, 45, 0.08);">
-            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/EmailLogo.png'); background-size: cover; background-position: center;"></div>
+            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/email-bg.png'); background-size: cover; background-position: center;"></div>
             <div style="padding: 40px 30px;">
               <h2 style="color: #4a5d4e; margin-top: 0; font-size: 24px; font-weight: bold; text-align: center;">پیام جدید: ${circleName}</h2>
               
@@ -244,7 +244,7 @@ export async function sendCircleSetupFormEmail(toEmail, name, circleName, setupU
       html: `
         <div dir="rtl" style="font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; max-width: 640px; margin: 0 auto; background-color: #fdfbf7; padding: 40px 20px; color: #2d2d2d; line-height: 1.8;">
           <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(45, 45, 45, 0.08);">
-            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/EmailLogo.png'); background-size: cover; background-position: center;"></div>
+            <div style="width: 100%; height: 180px; background-color: #4a5d4e; background-image: url('https://raw.githubusercontent.com/TheFlyBottle/circles-platform/master/public/email-bg.png'); background-size: cover; background-position: center;"></div>
             <div style="padding: 40px 30px;">
               <h2 style="color: #4a5d4e; margin-top: 0; font-size: 24px; font-weight: bold; text-align: center;">فرم تکمیل اطلاعات حلقه</h2>
               <p style="font-size: 16px;">سلام <strong>${escapeHtml(name)}</strong> عزیز،</p>
@@ -304,10 +304,31 @@ export async function sendCircleCreatedFromSetupEmail(registration, circle, circ
 
               <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
                 ${formatRegistrationField('Circle name', circle.name)}
-                ${formatRegistrationField('Circle link', circleUrl)}
+                <tr>
+                  <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #5a5a5a; width: 35%; vertical-align: top;">Circle link</td>
+                  <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">
+                    <a href="${escapeHtml(circleUrl)}" target="_blank" style="color: #4a5d4e;">${escapeHtml(circleUrl)}</a>
+                  </td>
+                </tr>
                 ${formatRegistrationField('Capacity', circle.capacity === 0 ? 'Unlimited' : circle.capacity)}
                 ${formatRegistrationField('Organizer name', registration.fullName)}
                 ${formatRegistrationField('Organizer email', registration.email)}
+                ${registration.setupDetails?.promoAssetUrl ? `
+                  <tr>
+                    <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #5a5a5a; width: 35%; vertical-align: top;">Promotion image</td>
+                    <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">
+                      <a href="${escapeHtml(registration.setupDetails.promoAssetUrl)}" target="_blank" style="color: #4a5d4e;">View image</a>
+                    </td>
+                  </tr>
+                ` : ''}
+                ${registration.setupDetails?.shareFile?.url ? `
+                  <tr>
+                    <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #5a5a5a; width: 35%; vertical-align: top;">Syllabus/Shared file</td>
+                    <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">
+                      <a href="${escapeHtml(registration.setupDetails.shareFile.url)}" target="_blank" style="color: #4a5d4e;">View file (${escapeHtml(registration.setupDetails.shareFile.name || 'document')})</a>
+                    </td>
+                  </tr>
+                ` : ''}
               </table>
 
               <div style="text-align: center; margin: 30px 0 8px;">
