@@ -23,7 +23,8 @@ export async function POST(req) {
     await connectMongo();
 
     const registration = await Registration.create(data);
-    const notificationSent = await sendNewCircleRegistrationNotification(registration);
+    const origin = new URL(req.url).origin;
+    const notificationSent = await sendNewCircleRegistrationNotification(registration, origin);
 
     if (!notificationSent) {
       console.warn('New circle registration was created, but the admin notification email was not sent.', {

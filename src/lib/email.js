@@ -168,16 +168,18 @@ ${messageHtml}
   }
 }
 
-export async function sendNewCircleRegistrationNotification(registration) {
+export async function sendNewCircleRegistrationNotification(registration, origin) {
   try {
     const circleName = registration.circleNameEn || registration.circleNameFa || 'New circle';
+    const reviewUrl = `${origin || ''}/admin/circle-registration/${registration._id}`;
 
     if (!process.env.RESEND_API_KEY) {
       console.warn('Simulating new circle registration notification... missing RESEND_API_KEY', {
         to: NEW_CIRCLE_NOTIFICATION_EMAIL,
         circleName,
         organizer: registration.fullName,
-        email: registration.email
+        email: registration.email,
+        reviewUrl
       });
       return true;
     }
@@ -212,6 +214,12 @@ export async function sendNewCircleRegistrationNotification(registration) {
               <div style="margin-top: 24px;">
                 <h3 style="color: #4a5d4e; margin: 0 0 8px; font-size: 16px;">Circle description</h3>
                 <div style="white-space: pre-wrap; background-color: #fdfbf7; border: 1px solid #e5e0d8; border-radius: 8px; padding: 14px;">${escapeHtml(registration.description || 'Not provided')}</div>
+              </div>
+
+              <div style="text-align: center; margin: 30px 0 8px;">
+                <a href="${escapeHtml(reviewUrl)}" style="background-color: #4a5d4e; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 24px; font-weight: bold; display: inline-block;">
+                  Review registration
+                </a>
               </div>
             </div>
           </div>
