@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import connectMongo from '@/lib/mongodb';
 import Circle from '@/models/Circle';
 import Submission from '@/models/Submission';
-import { sendTelegramInviteEmail } from '@/lib/email';
+import { sendConfirmationEmail, sendTelegramInviteEmail } from '@/lib/email';
 
 export async function POST(req) {
   try {
@@ -49,6 +49,15 @@ export async function POST(req) {
     }
 
     await submission.save();
+
+    const confirmationSent = await sendConfirmationEmail(data.email, data.fullName, circleName);
+    if (!confirmationSent) {
+      console.warn('Circle signup was saved, but the confirmation email was not sent.', {
+        submissionId: submission._id,
+        email: data.email,
+        circleName
+      });
+    }
     
     // Auto-close circle if capacity is reached
     if (circle.capacity > 0) {
