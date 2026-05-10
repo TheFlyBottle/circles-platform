@@ -5,7 +5,7 @@ import Registration from '@/models/Registration';
 import Circle from '@/models/Circle';
 import { serializeDoc } from '@/lib/serialize';
 import { recordAdminAction } from '@/lib/audit-log';
-import { sendCircleCreatedFromSetupEmail } from '@/lib/email';
+import { sendCircleCreatedFromSetupEmail, sendFullCircleSetupNotificationEmail } from '@/lib/email';
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
@@ -151,9 +151,17 @@ export async function POST(req, { params }) {
 
     const circleUrl = new URL(`/circles/${circle.slug}`, new URL(req.url).origin).toString();
     const notificationSent = await sendCircleCreatedFromSetupEmail(registration, circle, circleUrl);
+    const fullDetailsNotificationSent = await sendFullCircleSetupNotificationEmail(registration, circle, circleUrl);
 
     if (!notificationSent) {
       console.warn('Circle was created, but the setup completion email was not sent.', {
+        registrationId: registration._id,
+        circleId: circle._id
+      });
+    }
+
+    if (!fullDetailsNotificationSent) {
+      console.warn('Circle was created, but the full setup details email was not sent.', {
         registrationId: registration._id,
         circleId: circle._id
       });
@@ -169,6 +177,7 @@ export async function POST(req, { params }) {
         slug: circle.slug,
         capacity: circle.capacity,
         notificationSent,
+        fullDetailsNotificationSent,
         setupSubmitted: true
       }
     });

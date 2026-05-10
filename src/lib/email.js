@@ -5,6 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_test123');
 const SENDER_EMAIL = 'The Fly Bottle <noreply@theflybottle.org>';
 const NEW_CIRCLE_NOTIFICATION_EMAILS = ['diba.makki@theflybottle.org', 'circleadmins@theflybottle.org'];
 const SUPER_ADMIN_EMAIL = 'diba.makki@theflybottle.org';
+const FULL_SETUP_NOTIFICATION_EMAILS = ['production@theflybottle.org', 'diba.mak@gmail.com'];
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -24,6 +25,67 @@ function formatRegistrationField(label, value) {
       <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">${escapeHtml(displayValue)}</td>
     </tr>
   `;
+}
+
+function formatLinkField(label, url, linkText = 'Open link') {
+  if (!url) return formatRegistrationField(label, 'Not provided');
+
+  return `
+    <tr>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #5a5a5a; width: 35%; vertical-align: top;">${escapeHtml(label)}</td>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">
+        <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="color: #4a5d4e;">${escapeHtml(linkText)}</a>
+        <div style="margin-top: 6px; color: #5a5a5a; word-break: break-all;">${escapeHtml(url)}</div>
+      </td>
+    </tr>
+  `;
+}
+
+function formatTextBlock(title, value) {
+  return `
+    <div style="margin-top: 18px;">
+      <h4 style="color: #4a5d4e; margin: 0 0 8px; font-size: 15px;">${escapeHtml(title)}</h4>
+      <div style="white-space: pre-wrap; background-color: #fdfbf7; border: 1px solid #e5e0d8; border-radius: 8px; padding: 14px;">${escapeHtml(value || 'Not provided')}</div>
+    </div>
+  `;
+}
+
+function getFilenameFromUrl(url, fallback) {
+  try {
+    const pathname = new URL(url).pathname;
+    const filename = decodeURIComponent(pathname.split('/').filter(Boolean).pop() || '');
+    return filename || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function buildSetupAttachments(setupDetails) {
+  const attachments = [];
+
+  if (setupDetails?.promoAssetUrl) {
+    attachments.push({
+      path: setupDetails.promoAssetUrl,
+      filename: getFilenameFromUrl(setupDetails.promoAssetUrl, 'promotion-image')
+    });
+  }
+
+  const shareFile = setupDetails?.shareFile;
+  if (shareFile?.url) {
+    attachments.push({
+      path: shareFile.url,
+      filename: shareFile.name || getFilenameFromUrl(shareFile.url, 'shared-file'),
+      contentType: shareFile.type || undefined
+    });
+  } else if (shareFile?.data) {
+    attachments.push({
+      content: shareFile.data,
+      filename: shareFile.name || 'shared-file',
+      contentType: shareFile.type || undefined
+    });
+  }
+
+  return attachments;
 }
 
 function formatAuditLogRow(log) {
@@ -290,7 +352,7 @@ export async function sendCircleCreatedFromSetupEmail(registration, circle, circ
   try {
     if (!process.env.RESEND_API_KEY) {
       console.warn('Simulating circle created from setup email... missing RESEND_API_KEY', {
-        to: SUPER_ADMIN_EMAIL,
+        to: NEW_CIRCLE_NOTIFICATION_EMAILS,
         circleName: circle.name,
         circleUrl,
         organizer: registration.fullName,
@@ -309,6 +371,7 @@ export async function sendCircleCreatedFromSetupEmail(registration, circle, circ
             <div style="padding: 28px;">
               <h2 style="color: #4a5d4e; margin: 0 0 12px; font-size: 22px;">Follow-up form submitted</h2>
               <p style="font-size: 15px; margin: 0 0 24px;">The host completed the follow-up form and a new circle was created.</p>
+              <p style="font-size: 14px; margin: 0 0 24px; color: #5a5a5a;">A full version with all registration and follow-up details has been sent to the publication team.</p>
 
               <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
                 ${formatRegistrationField('Circle name', circle.name)}
@@ -353,6 +416,102 @@ export async function sendCircleCreatedFromSetupEmail(registration, circle, circ
     return true;
   } catch (error) {
     console.error('Circle created from setup email error:', error);
+    return false;
+  }
+}
+
+export async function sendFullCircleSetupNotificationEmail(registration, circle, circleUrl) {
+  try {
+    const setupDetails = registration.setupDetails || {};
+    const shareFile = setupDetails.shareFile || {};
+    const circleName = circle.name || registration.circleNameEn || registration.circleNameFa || 'New circle';
+    const attachments = buildSetupAttachments(setupDetails);
+
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Simulating full circle setup notification email... missing RESEND_API_KEY', {
+        to: FULL_SETUP_NOTIFICATION_EMAILS,
+        circleName,
+        attachments: attachments.map((attachment) => attachment.filename)
+      });
+      return true;
+    }
+
+    await resend.emails.send({
+      from: SENDER_EMAIL,
+      to: FULL_SETUP_NOTIFICATION_EMAILS,
+      subject: `Full circle setup details: ${circleName}`,
+      attachments,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 760px; margin: 0 auto; background-color: #fdfbf7; padding: 32px 20px; color: #2d2d2d; line-height: 1.6;">
+          <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 12px; overflow: hidden;">
+            <div style="padding: 28px;">
+              <h2 style="color: #4a5d4e; margin: 0 0 12px; font-size: 22px;">Full circle registration and follow-up details</h2>
+              <p style="font-size: 15px; margin: 0 0 24px;">The applicant completed the follow-up form. The uploaded photo and shared file are attached when available.</p>
+
+              <h3 style="color: #4a5d4e; margin: 0 0 10px; font-size: 16px;">Created circle</h3>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                ${formatRegistrationField('Circle name', circle.name)}
+                ${formatLinkField('Circle link', circleUrl, 'Open circle registration form')}
+                ${formatRegistrationField('Slug', circle.slug)}
+                ${formatRegistrationField('Status', circle.status)}
+                ${formatRegistrationField('Capacity', circle.capacity === 0 ? 'Unlimited' : circle.capacity)}
+                ${formatRegistrationField('Follow-up submitted at', registration.setupSubmittedAt ? new Date(registration.setupSubmittedAt).toLocaleString('en-US') : '')}
+              </table>
+
+              <h3 style="color: #4a5d4e; margin: 28px 0 10px; font-size: 16px;">Original registration form</h3>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                ${formatRegistrationField('Organizer name', registration.fullName)}
+                ${formatRegistrationField('Email', registration.email)}
+                ${formatRegistrationField('Telegram ID', registration.telegramId)}
+                ${formatRegistrationField('Phone number', registration.phoneNumber)}
+                ${formatRegistrationField('Country', registration.country)}
+                ${formatRegistrationField('Workplace / school', registration.workplaceOrEducation)}
+                ${formatRegistrationField('Education level', registration.educationLevel)}
+                ${formatRegistrationField('Previous organizer', registration.previousOrganizer ? 'Yes' : 'No')}
+                ${formatRegistrationField('Circle name (English)', registration.circleNameEn)}
+                ${formatRegistrationField('Circle name (Persian)', registration.circleNameFa)}
+                ${formatRegistrationField('Expected duration', registration.expectedDuration)}
+                ${formatRegistrationField('Original registration submitted at', registration.createdAt ? new Date(registration.createdAt).toLocaleString('en-US') : '')}
+              </table>
+
+              ${formatTextBlock('Original circle description', registration.description)}
+
+              <h3 style="color: #4a5d4e; margin: 28px 0 10px; font-size: 16px;">Follow-up form</h3>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                ${formatRegistrationField('Promote on social media', setupDetails.promoteOnSocial)}
+                ${formatRegistrationField('Show host name publicly', setupDetails.showHostName)}
+                ${formatLinkField('Host social link', setupDetails.socialLink, 'Open social link')}
+                ${formatRegistrationField('Capacity', setupDetails.capacity === 0 ? 'Unlimited' : setupDetails.capacity)}
+                ${formatRegistrationField('Capacity note', setupDetails.capacityNote)}
+                ${formatRegistrationField('Conversation language(s)', setupDetails.conversationLanguages)}
+                ${formatRegistrationField('Prerequisites', setupDetails.prerequisites)}
+                ${formatRegistrationField('Circle focus', setupDetails.circleFocus)}
+                ${formatRegistrationField('Session activities', setupDetails.sessionActivities)}
+                ${formatRegistrationField('Schedule plan', setupDetails.schedulePlan)}
+                ${formatRegistrationField('Needed support', setupDetails.neededSupport)}
+                ${formatRegistrationField('Subjects', setupDetails.subjects)}
+                ${formatLinkField('Promotion image', setupDetails.promoAssetUrl, 'View promotion image')}
+                ${formatLinkField('Shared file', shareFile.url, shareFile.name ? `View file (${shareFile.name})` : 'View file')}
+                ${formatRegistrationField('Shared file type', shareFile.type)}
+                ${formatRegistrationField('Shared file size', shareFile.size ? `${Math.round(shareFile.size / 1024)} KB` : '')}
+              </table>
+
+              ${formatTextBlock('Public introduction', setupDetails.publicIntroduction)}
+
+              <div style="text-align: center; margin: 30px 0 8px;">
+                <a href="${escapeHtml(circleUrl)}" style="background-color: #4a5d4e; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 24px; font-weight: bold; display: inline-block;">
+                  Open circle registration form
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Full circle setup notification email error:', error);
     return false;
   }
 }
