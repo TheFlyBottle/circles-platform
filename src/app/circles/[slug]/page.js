@@ -3,7 +3,26 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { SUBJECTS } from '@/lib/constants';
+import countries from 'world-countries';
 import Link from 'next/link';
+
+const EDUCATION_LEVELS = [
+  "دکتری Doctorate",
+  "کارشناسی ارشد Master's",
+  "کارشناسی Bachelor's",
+  "سایر Other",
+];
+
+const COUNTRY_OPTIONS = countries
+  .map((country) => {
+    const englishName = country.name.common;
+    const persianName = country.translations?.per?.common;
+
+    return persianName && persianName !== englishName
+      ? `${persianName} ${englishName}`
+      : englishName;
+  })
+  .sort((a, b) => a.localeCompare(b, 'fa'));
 
 export default function RegistrationForm({ params }) {
   const { slug } = use(params);
@@ -176,18 +195,33 @@ export default function RegistrationForm({ params }) {
           <div className="form-group">
             <label>Country / کشور محل سکونت</label>
             <input
-              type="text" className="form-control"
-              value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+              type="text"
+              className="form-control"
+              list="country-options"
+              placeholder="Search country"
+              value={formData.country}
+              onChange={(e) => setFormData({ ...formData, country: e.target.value })}
               required
             />
+            <datalist id="country-options">
+              {COUNTRY_OPTIONS.map((country) => (
+                <option key={country} value={country} />
+              ))}
+            </datalist>
           </div>
           <div className="form-group">
             <label>Education / مقطع تحصیلی</label>
-            <input
-              type="text" className="form-control" placeholder="e.g. Master's"
-              value={formData.educationLevel} onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })}
+            <select
+              className="form-control"
+              value={formData.educationLevel}
+              onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })}
               required
-            />
+            >
+              <option value="" disabled>Select education level</option>
+              {EDUCATION_LEVELS.map((level) => (
+                <option key={level} value={level}>{level}</option>
+              ))}
+            </select>
           </div>
           <div className="form-group md:col-span-1">
             <label>Field of Study / رشته تحصیلی</label>
