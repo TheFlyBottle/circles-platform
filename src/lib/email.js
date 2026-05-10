@@ -363,7 +363,7 @@ export async function sendCircleCreatedFromSetupEmail(registration, circle, circ
 
     await resend.emails.send({
       from: SENDER_EMAIL,
-      to: [SUPER_ADMIN_EMAIL],
+      to: NEW_CIRCLE_NOTIFICATION_EMAILS,
       subject: `Circle created from follow-up form: ${circle.name}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 680px; margin: 0 auto; background-color: #fdfbf7; padding: 32px 20px; color: #2d2d2d; line-height: 1.6;">
