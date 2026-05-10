@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY || 're_test123');
 
 const SENDER_EMAIL = 'The Fly Bottle <noreply@theflybottle.org>';
-const NEW_CIRCLE_NOTIFICATION_EMAIL = 'diba.makki@theflybottle.org';
+const NEW_CIRCLE_NOTIFICATION_EMAILS = ['diba.makki@theflybottle.org', 'circleadmins@theflybottle.org'];
 const SUPER_ADMIN_EMAIL = 'diba.makki@theflybottle.org';
 
 function escapeHtml(value) {
@@ -175,7 +175,7 @@ export async function sendNewCircleRegistrationNotification(registration, origin
 
     if (!process.env.RESEND_API_KEY) {
       console.warn('Simulating new circle registration notification... missing RESEND_API_KEY', {
-        to: NEW_CIRCLE_NOTIFICATION_EMAIL,
+        to: NEW_CIRCLE_NOTIFICATION_EMAILS,
         circleName,
         organizer: registration.fullName,
         email: registration.email,
@@ -186,7 +186,7 @@ export async function sendNewCircleRegistrationNotification(registration, origin
 
     await resend.emails.send({
       from: SENDER_EMAIL,
-      to: [NEW_CIRCLE_NOTIFICATION_EMAIL],
+      to: NEW_CIRCLE_NOTIFICATION_EMAILS,
       subject: `New circle registration: ${circleName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 680px; margin: 0 auto; background-color: #fdfbf7; padding: 32px 20px; color: #2d2d2d; line-height: 1.6;">
