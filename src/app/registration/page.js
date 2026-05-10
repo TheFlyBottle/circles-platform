@@ -3,6 +3,25 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import countries from 'world-countries';
+
+const EDUCATION_LEVELS = [
+    "دکتری Doctorate",
+    "کارشناسی ارشد Master's",
+    "کارشناسی Bachelor's",
+    "سایر Other",
+];
+
+const COUNTRY_OPTIONS = countries
+    .map((country) => {
+        const englishName = country.name.common;
+        const persianName = country.translations?.per?.common;
+
+        return persianName && persianName !== englishName
+            ? `${persianName} ${englishName}`
+            : englishName;
+    })
+    .sort((a, b) => a.localeCompare(b, 'fa'));
 
 export default function Registration() {
     const router = useRouter();
@@ -20,8 +39,6 @@ export default function Registration() {
         circleNameFa: '',
         circleNameEn: '',
         description: '',
-        expectedRegistrationDate: '',
-        expectedSessionStartDate: '',
         expectedDuration: '',
         agreedToTerms: false
     });
@@ -115,16 +132,37 @@ export default function Registration() {
 
                     <div className="grid md:grid-cols-3 gap-6 mb-6">
                         <div className="form-group text-right">
-                            <label className="dir-rtl">محل کار/تحصیل (Workplace/School)</label>
+                            <label className="dir-rtl"> کار/تحصیل (Workplace/School)</label>
                             <input type="text" className="form-control dir-rtl" value={formData.workplaceOrEducation} onChange={e => setFormData({ ...formData, workplaceOrEducation: e.target.value })} />
                         </div>
                         <div className="form-group text-right">
                             <label className="dir-rtl">کشور محل سکونت (Country)</label>
-                            <input type="text" className="form-control dir-rtl" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value })} />
+                            <input
+                                type="text"
+                                className="form-control dir-rtl"
+                                list="registration-country-options"
+                                placeholder="Search country"
+                                value={formData.country}
+                                onChange={e => setFormData({ ...formData, country: e.target.value })}
+                            />
+                            <datalist id="registration-country-options">
+                                {COUNTRY_OPTIONS.map((country) => (
+                                    <option key={country} value={country} />
+                                ))}
+                            </datalist>
                         </div>
                         <div className="form-group text-right">
                             <label className="dir-rtl">میزان تحصیلات (Education Level)</label>
-                            <input type="text" className="form-control dir-rtl" value={formData.educationLevel} onChange={e => setFormData({ ...formData, educationLevel: e.target.value })} />
+                            <select
+                                className="form-control dir-rtl"
+                                value={formData.educationLevel}
+                                onChange={e => setFormData({ ...formData, educationLevel: e.target.value })}
+                            >
+                                <option value="">Select education level</option>
+                                {EDUCATION_LEVELS.map((level) => (
+                                    <option key={level} value={level}>{level}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
@@ -142,17 +180,6 @@ export default function Registration() {
                     <div className="form-group mb-6 text-right">
                         <label className="dir-rtl" style={{ display: 'block' }}>درباره حلقه‌ای که می‌خواهید تأسیس کنید توضیح دهید؛ برای مثال، هدف، نوع فعالیت‌ها، اعضای مورد نظر و نحوه برگزاری آن را شرح دهید. <span style={{ color: 'var(--danger)' }}>*</span></label>
                         <textarea className="form-control dir-rtl" rows="5" required value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}></textarea>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-6 mb-6">
-                        <div className="form-group text-right">
-                            <label className="dir-rtl" style={{ display: 'block' }}>چه زمانی را برای آغاز عضوگیری حلقه در نظر دارید؟ (Registration Start Date)</label>
-                            <input type="date" className="form-control" value={formData.expectedRegistrationDate} onChange={e => setFormData({ ...formData, expectedRegistrationDate: e.target.value })} />
-                        </div>
-                        <div className="form-group text-right">
-                            <label className="dir-rtl" style={{ display: 'block' }}>چه زمانی را برای شروع جلسات در نظر دارید؟ (Sessions Start Date)</label>
-                            <input type="date" className="form-control" value={formData.expectedSessionStartDate} onChange={e => setFormData({ ...formData, expectedSessionStartDate: e.target.value })} />
-                        </div>
                     </div>
 
                     <div className="form-group mb-8 text-right">
