@@ -2,7 +2,10 @@ import bcrypt from 'bcryptjs';
 import connectMongo from '@/lib/mongodb';
 import Admin from '@/models/Admin';
 
-export const SUPER_ADMIN_EMAIL = 'diba.makki@theflybottle.org';
+export const SUPER_ADMIN_EMAILS = [
+  'diba.makki@theflybottle.org',
+  'm.ebrahimpour@theflybottle.org'
+];
 const BOOTSTRAP_PASSWORD = process.env.ADMIN_BOOTSTRAP_PASSWORD || 'TheFlyBottle123';
 
 export function normalizeAdminEmail(email) {
@@ -10,7 +13,7 @@ export function normalizeAdminEmail(email) {
 }
 
 export function getAdminRole(email, storedRole) {
-  return normalizeAdminEmail(email) === SUPER_ADMIN_EMAIL ? 'super_admin' : (storedRole || 'admin');
+  return SUPER_ADMIN_EMAILS.includes(normalizeAdminEmail(email)) ? 'super_admin' : (storedRole || 'admin');
 }
 
 export function serializeAdmin(admin) {
@@ -34,15 +37,27 @@ export function serializeAdmin(admin) {
 }
 
 async function ensureSuperAdmin(email, password) {
-  if (normalizeAdminEmail(email) !== SUPER_ADMIN_EMAIL || password !== BOOTSTRAP_PASSWORD) {
+  const normalizedEmail = normalizeAdminEmail(email);
+  if (!SUPER_ADMIN_EMAILS.includes(normalizedEmail) || password !== BOOTSTRAP_PASSWORD) {
     return null;
+  }
+
+  let firstName = 'Admin';
+  let lastName = 'User';
+  
+  if (normalizedEmail === 'diba.makki@theflybottle.org') {
+    firstName = 'Diba';
+    lastName = 'Makki';
+  } else if (normalizedEmail === 'm.ebrahimpour@theflybottle.org') {
+    firstName = 'Mehdi';
+    lastName = 'Ebrahimpour';
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
   const admin = await Admin.create({
-    firstName: 'Diba',
-    lastName: 'Makki',
-    email: SUPER_ADMIN_EMAIL,
+    firstName,
+    lastName,
+    email: normalizedEmail,
     password: passwordHash,
     role: 'super_admin',
     forcePasswordChange: false,

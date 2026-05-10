@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import connectMongo from '@/lib/mongodb';
 import Admin from '@/models/Admin';
 import { getSession, isSuperAdmin } from '@/lib/auth';
-import { SUPER_ADMIN_EMAIL, normalizeAdminEmail } from '@/lib/admin-auth';
+import { SUPER_ADMIN_EMAILS, normalizeAdminEmail } from '@/lib/admin-auth';
 import { recordAdminAction } from '@/lib/audit-log';
 
 export async function DELETE(_req, { params }) {
@@ -20,8 +20,8 @@ export async function DELETE(_req, { params }) {
     if (!admin) return NextResponse.json({ error: 'Admin not found.' }, { status: 404 });
 
     const email = normalizeAdminEmail(admin.email);
-    if (email === SUPER_ADMIN_EMAIL) {
-      return NextResponse.json({ error: 'The super admin cannot be removed.' }, { status: 400 });
+    if (SUPER_ADMIN_EMAILS.includes(email)) {
+      return NextResponse.json({ error: 'Super admins cannot be removed.' }, { status: 400 });
     }
 
     if (email === normalizeAdminEmail(session.email)) {

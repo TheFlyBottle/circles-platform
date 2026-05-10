@@ -4,7 +4,7 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_test123');
 
 const SENDER_EMAIL = 'The Fly Bottle <noreply@theflybottle.org>';
 const NEW_CIRCLE_NOTIFICATION_EMAILS = ['diba.makki@theflybottle.org', 'circleadmins@theflybottle.org'];
-const SUPER_ADMIN_EMAIL = 'diba.makki@theflybottle.org';
+const SUPER_ADMIN_EMAILS = ['diba.makki@theflybottle.org', 'm.ebrahimpour@theflybottle.org'];
 const FULL_SETUP_NOTIFICATION_EMAILS = ['production@theflybottle.org', 'diba.mak@gmail.com'];
 
 function escapeHtml(value) {
@@ -522,7 +522,7 @@ export async function sendAuditLogDigestEmail(logs) {
 
     if (!process.env.RESEND_API_KEY) {
       console.warn('Simulating audit log digest email... missing RESEND_API_KEY', {
-        to: SUPER_ADMIN_EMAIL,
+        to: SUPER_ADMIN_EMAILS,
         count: logs.length
       });
       return true;
@@ -530,7 +530,7 @@ export async function sendAuditLogDigestEmail(logs) {
 
     await resend.emails.send({
       from: SENDER_EMAIL,
-      to: [SUPER_ADMIN_EMAIL],
+      to: SUPER_ADMIN_EMAILS,
       subject: `Admin activity log reached ${logs.length} entries`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 960px; margin: 0 auto; background-color: #fdfbf7; padding: 32px 20px; color: #2d2d2d; line-height: 1.5;">
