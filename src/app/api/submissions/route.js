@@ -42,12 +42,6 @@ export async function POST(req) {
 
     const circleName = circle.titleEn || circle.name;
 
-    // If telegram link already exists, send invite immediately
-    if (circle.telegramLink) {
-        await sendTelegramInviteEmail(data.email, data.fullName, circleName, circle.telegramLink);
-        submission.notified = true;
-    }
-
     await submission.save();
 
     const confirmationSent = await sendConfirmationEmail(data.email, data.fullName, circleName);
@@ -57,6 +51,13 @@ export async function POST(req) {
         email: data.email,
         circleName
       });
+    }
+
+    // If a telegram link already exists, send it after the confirmation email.
+    if (circle.telegramLink) {
+        await sendTelegramInviteEmail(data.email, data.fullName, circleName, circle.telegramLink);
+        submission.notified = true;
+        await submission.save();
     }
     
     // Auto-close circle if capacity is reached
