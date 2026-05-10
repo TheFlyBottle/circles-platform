@@ -20,11 +20,11 @@ export default function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-      
+
       const data = await res.json();
-      
+
       if (!res.ok) throw new Error(data.error || 'Login failed');
-      
+
       router.push(data.forcePasswordChange ? '/admin/settings' : '/admin/dashboard');
       router.refresh();
     } catch (err) {
@@ -40,31 +40,31 @@ export default function Login() {
         <h2 className="font-serif" style={{ color: 'var(--accent-primary)', marginBottom: '0.5rem', fontSize: '1.75rem' }}>Admin Access</h2>
         <p style={{ color: 'var(--text-secondary)' }}>Sign in to manage circles.</p>
       </div>
-      
+
       {error && <div className="alert alert-error">{error}</div>}
-      
+
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Email Address</label>
-          <input 
-            type="email" 
-            className="form-control" 
+          <input
+            type="email"
+            className="form-control"
             name="email"
             value={formData.email}
-            onChange={(e) => setFormData({...formData, email: e.target.value})}
-            required 
-            placeholder="name@example.com"
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            required
+            placeholder="name@theflybottle.org"
           />
         </div>
         <div className="form-group">
           <label>Password</label>
-          <input 
-            type="password" 
-            className="form-control" 
+          <input
+            type="password"
+            className="form-control"
             name="password"
             value={formData.password}
-            onChange={(e) => setFormData({...formData, password: e.target.value})}
-            required 
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            required
           />
         </div>
         <button type="submit" className="btn-primary w-full mt-4" disabled={loading}>
