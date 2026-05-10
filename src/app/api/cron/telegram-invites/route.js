@@ -35,7 +35,7 @@ export async function GET(req) {
           const sent = await sendTelegramInviteEmail(
             sub.email, 
             sub.fullName, 
-            circle.name, 
+            circle.titleFa || circle.titleEn || circle.name,
             circle.telegramLink
           );
           

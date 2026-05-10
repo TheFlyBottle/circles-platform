@@ -77,7 +77,7 @@ export async function PUT(req, { params }) {
           sendTelegramInviteEmail(
             sub.email,
             sub.fullName,
-            circle.titleEn || circle.name,
+            circle.titleFa || circle.titleEn || circle.name,
             data.telegramLink
           )
         )

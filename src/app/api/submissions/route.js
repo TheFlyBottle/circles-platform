@@ -40,7 +40,7 @@ export async function POST(req) {
       notified: false,
     });
 
-    const circleName = circle.titleEn || circle.name;
+    const circleName = circle.titleFa || circle.titleEn || circle.name;
 
     await submission.save();
 
