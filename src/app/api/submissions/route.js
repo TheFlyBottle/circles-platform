@@ -2,8 +2,21 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectMongo from '@/lib/mongodb';
 import Circle from '@/models/Circle';
+import Registration from '@/models/Registration';
 import Submission from '@/models/Submission';
 import { sendConfirmationEmail, sendTelegramInviteEmail } from '@/lib/email';
+
+async function getApplicantCircleName(circle) {
+  if (circle.titleFa || circle.titleEn) {
+    return circle.titleFa || circle.titleEn;
+  }
+
+  const registration = await Registration.findOne({ circleId: circle._id })
+    .select('circleNameFa circleNameEn')
+    .lean();
+
+  return registration?.circleNameFa || registration?.circleNameEn || circle.name;
+}
 
 export async function POST(req) {
   try {
@@ -40,7 +53,7 @@ export async function POST(req) {
       notified: false,
     });
 
-    const circleName = circle.titleFa || circle.titleEn || circle.name;
+    const circleName = await getApplicantCircleName(circle);
 
     await submission.save();
 

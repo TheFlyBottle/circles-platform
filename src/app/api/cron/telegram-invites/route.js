@@ -1,8 +1,21 @@
 import { NextResponse } from 'next/server';
 import connectMongo from '@/lib/mongodb';
 import Circle from '@/models/Circle';
+import Registration from '@/models/Registration';
 import Submission from '@/models/Submission';
 import { sendTelegramInviteEmail } from '@/lib/email';
+
+async function getApplicantCircleName(circle) {
+  if (circle.titleFa || circle.titleEn) {
+    return circle.titleFa || circle.titleEn;
+  }
+
+  const registration = await Registration.findOne({ circleId: circle._id })
+    .select('circleNameFa circleNameEn')
+    .lean();
+
+  return registration?.circleNameFa || registration?.circleNameEn || circle.name;
+}
 
 // This endpoint conventionally would be hit by a cron service (like Vercel Cron or GitHub Actions)
 // A secure authentication mechanism (e.g. CRON_SECRET) should be checked in production to prevent abuse.
@@ -25,6 +38,8 @@ export async function GET(req) {
 
     for (const circle of circlesWithTelegram) {
       if (circle.telegramLink && circle.telegramLink.length > 5) {
+        const applicantCircleName = await getApplicantCircleName(circle);
+
         // Find unnotified submissions for this circle
         const pendingSubmissions = await Submission.find({
           circleId: circle._id,
@@ -35,7 +50,7 @@ export async function GET(req) {
           const sent = await sendTelegramInviteEmail(
             sub.email, 
             sub.fullName, 
-            circle.titleFa || circle.titleEn || circle.name,
+            applicantCircleName,
             circle.telegramLink
           );
           

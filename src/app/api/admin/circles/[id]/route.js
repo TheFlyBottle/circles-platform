@@ -3,12 +3,25 @@ import mongoose from 'mongoose';
 import { getSession } from '@/lib/auth';
 import connectMongo from '@/lib/mongodb';
 import Circle from '@/models/Circle';
+import Registration from '@/models/Registration';
 import Submission from '@/models/Submission';
 import { serializeDoc, serializeDocs } from '@/lib/serialize';
 import { sendTelegramInviteEmail } from '@/lib/email';
 import { recordAdminAction } from '@/lib/audit-log';
 
 const CIRCLE_STATUSES = ['active', 'closed', 'archived'];
+
+async function getApplicantCircleName(circle) {
+  if (circle.titleFa || circle.titleEn) {
+    return circle.titleFa || circle.titleEn;
+  }
+
+  const registration = await Registration.findOne({ circleId: circle._id })
+    .select('circleNameFa circleNameEn')
+    .lean();
+
+  return registration?.circleNameFa || registration?.circleNameEn || circle.name;
+}
 
 export async function GET(req, { params }) {
   try {
@@ -72,12 +85,13 @@ export async function PUT(req, { params }) {
     // Auto-mark notifications and send emails if Telegram link is added for the first time
     if (data.telegramLink && !hadTelegramLink) {
       const pendingSubmissions = await Submission.find({ circleId: id, notified: false });
+      const applicantCircleName = await getApplicantCircleName(circle);
       const emailResults = await Promise.allSettled(
         pendingSubmissions.map((sub) =>
           sendTelegramInviteEmail(
             sub.email,
             sub.fullName,
-            circle.titleFa || circle.titleEn || circle.name,
+            applicantCircleName,
             data.telegramLink
           )
         )

@@ -137,6 +137,8 @@ export async function POST(req, { params }) {
     const slug = await createUniqueSlug(registration.circleNameEn || registration.circleNameFa);
     const circle = await Circle.create({
       name: registration.circleNameEn,
+      titleEn: registration.circleNameEn,
+      titleFa: registration.circleNameFa,
       slug,
       status: 'active',
       capacity,

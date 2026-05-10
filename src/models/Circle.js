@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 
 const CircleSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  titleEn: { type: String },
+  titleFa: { type: String },
   slug: { type: String, required: true, unique: true },
   status: { 
     type: String, 
