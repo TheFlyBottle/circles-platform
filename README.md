@@ -1,8 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Circles Platform
+
+The Circles Platform is a full-stack Next.js web application built for The Flybottle to manage "Circles"—community discussion groups and courses. It handles everything from user registration and circle proposals to administrative management and mass communication.
+
+## Features
+
+- **Circle Registration & Proposals:** Users can propose new circles or register for existing ones.
+- **Admin Dashboard:** A centralized portal for admins and super admins to review proposals, approve/reject circles, and manage platform data.
+- **Automated Communication:** Integrated with Resend for sending automated email notifications (e.g., new registrations) and mass BCC emails to circle members directly from the admin dashboard.
+- **Asset Uploads:** Seamless file uploading for promotion images and syllabus documents using UploadThing.
+- **Cron Jobs:** Automated background tasks (e.g., sending Telegram invite links to registered users).
+- **Authentication:** Secure login and role-based access control (Admin, Super Admin) using NextAuth.js.
+- **Performance Tracking:** Integrated with Vercel Analytics and Speed Insights for monitoring user experience.
+
+## Tech Stack
+
+- **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
+- **Database:** [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/)
+- **Authentication:** [NextAuth.js](https://next-auth.js.org/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **File Uploads:** [UploadThing](https://uploadthing.com/)
+- **Email Delivery:** [Resend](https://resend.com/)
+- **Deployment & Analytics:** [Vercel](https://vercel.com/)
 
 ## Getting Started
 
-First, run the development server:
+First, ensure you have the necessary environment variables set up in `.env.local`. You will need keys for MongoDB, NextAuth, UploadThing, and Resend.
+
+Run the development server:
 
 ```bash
 npm run dev
@@ -16,19 +40,29 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The application requires the following environment variables. Create a `.env.local` file in the root directory:
 
-## Learn More
+```env
+# Database
+MONGODB_URI=
 
-To learn more about Next.js, take a look at the following resources:
+# NextAuth
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# UploadThing
+UPLOADTHING_SECRET=
+UPLOADTHING_APP_ID=
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Resend
+RESEND_API_KEY=
+```
+*(Check the internal documentation for the full list of required variables)*
 
-## Vercel
+## Deployment
 
-[circles-platform.vercel.app](https://circles-platform.vercel.app/)
+The project is hosted on Vercel: [circles-platform.vercel.app](https://circles-platform.vercel.app/)
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
