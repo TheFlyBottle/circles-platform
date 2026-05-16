@@ -34,6 +34,7 @@ export default function RegistrationForm({ params }) {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
+    emailConfirmation: '',
     country: '',
     educationLevel: '',
     fieldOfStudy: '',
@@ -84,8 +85,16 @@ export default function RegistrationForm({ params }) {
     setSubmitError('');
 
     try {
+      const normalizedEmail = formData.email.trim().toLowerCase();
+      const normalizedEmailConfirmation = formData.emailConfirmation.trim().toLowerCase();
+
+      if (normalizedEmail !== normalizedEmailConfirmation) {
+        throw new Error('Email addresses do not match. Please check both email fields.');
+      }
+
+      const { emailConfirmation, ...submissionData } = formData;
       const payload = {
-        ...formData,
+        ...submissionData,
         circleId: circle._id
       };
 
@@ -149,6 +158,9 @@ export default function RegistrationForm({ params }) {
       dotColor = '#d97706'; // Muted amber/yellow
     }
   }
+  const emailMismatch =
+    formData.emailConfirmation.trim().length > 0 &&
+    formData.email.trim().toLowerCase() !== formData.emailConfirmation.trim().toLowerCase();
 
   return (
     <div className="card animate-fade-in" style={{ maxWidth: '800px', margin: '2rem auto' }}>
@@ -191,7 +203,21 @@ export default function RegistrationForm({ params }) {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mt-4">
+        <div className="grid md:grid-cols-2 gap-6 mt-4">
+          <div className="form-group">
+            <label>Confirm Email Address / تایید آدرس ایمیل</label>
+            <input
+              type="email" className="form-control"
+              value={formData.emailConfirmation}
+              onChange={(e) => setFormData({ ...formData, emailConfirmation: e.target.value })}
+              required
+            />
+            {emailMismatch && (
+              <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                Email addresses do not match. Please check the email address.
+              </p>
+            )}
+          </div>
           <div className="form-group">
             <label>Country / کشور محل سکونت</label>
             <input
@@ -223,7 +249,7 @@ export default function RegistrationForm({ params }) {
               ))}
             </select>
           </div>
-          <div className="form-group md:col-span-1">
+          <div className="form-group">
             <label>Field of Study / رشته تحصیلی</label>
             <input
               type="text" className="form-control"
