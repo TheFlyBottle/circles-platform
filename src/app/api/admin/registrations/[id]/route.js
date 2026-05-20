@@ -70,7 +70,7 @@ export async function PUT(req, { params }) {
         setupFormEmailSent = await sendCircleSetupFormEmail(
           registration.email,
           registration.fullName,
-          registration.circleNameEn || registration.circleNameFa,
+          registration.circleNameFa || registration.circleNameEn,
           setupUrl.toString()
         );
 

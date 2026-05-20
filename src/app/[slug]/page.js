@@ -8,7 +8,7 @@ export default function RegistrationForm({ params }) {
   const [circle, setCircle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -82,10 +82,10 @@ export default function RegistrationForm({ params }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
+
       setSuccess(true);
     } catch (err) {
       setSubmitError(err.message);
@@ -109,7 +109,7 @@ export default function RegistrationForm({ params }) {
       <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
       <h2 className="font-serif" style={{ color: 'var(--success)' }}>Registration Successful</h2>
       <p style={{ color: 'var(--text-secondary)', margin: '1.5rem 0', fontSize: '1.1rem' }}>
-        Thank you for registering for <strong style={{ color: 'var(--foreground)' }}>{circle.titleEn || circle.name}</strong>. 
+        Thank you for registering for <strong style={{ color: 'var(--foreground)' }}>{circle.titleEn || circle.name}</strong>.
       </p>
       <p className="dir-rtl" style={{ color: 'var(--text-secondary)', margin: '1.5rem 0', fontSize: '1.1rem' }}>
         ثبت نام شما با موفقیت انجام شد. ما یک ایمیل تایید به آدرس شما ارسال کرده‌ایم.
@@ -147,10 +147,10 @@ export default function RegistrationForm({ params }) {
         <h2 className="font-serif" style={{ color: 'var(--accent-primary)', marginBottom: '0.5rem', fontSize: '2rem' }}>{circle.titleEn || circle.name}</h2>
         <h3 className="font-sans dir-rtl" style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontWeight: 300 }}>{circle.titleFa}</h3>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'var(--background)', padding: '0.5rem 1rem', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
-            <div className="motif-circle"></div>
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
-              {circle.capacity > 0 ? `${circle.currentRegistrations} / ${circle.capacity} Spots Filled` : 'Unlimited Spots'}
-            </span>
+          <div className="motif-circle"></div>
+          <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+            {circle.capacity > 0 ? `${circle.currentRegistrations} / ${circle.capacity} Spots Filled` : 'Unlimited Spots'}
+          </span>
         </div>
       </div>
 
@@ -160,26 +160,26 @@ export default function RegistrationForm({ params }) {
         <div className="grid md:grid-cols-2 gap-6">
           <div className="form-group">
             <label>Full Name / نام و نام خانوادگی</label>
-            <input 
-              type="text" className="form-control" 
-              value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-              required 
+            <input
+              type="text" className="form-control"
+              value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+              required
             />
           </div>
           <div className="form-group">
             <label>Email Address / آدرس ایمیل</label>
-            <input 
-              type="email" className="form-control" 
-              value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}
-              required 
+            <input
+              type="email" className="form-control"
+              value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
             />
           </div>
           <div className="form-group">
             <label>Confirm Email Address / تایید آدرس ایمیل</label>
-            <input 
-              type="email" className="form-control" 
-              value={formData.emailConfirmation} onChange={(e) => setFormData({...formData, emailConfirmation: e.target.value})}
-              required 
+            <input
+              type="email" className="form-control"
+              value={formData.emailConfirmation} onChange={(e) => setFormData({ ...formData, emailConfirmation: e.target.value })}
+              required
             />
             {emailMismatch && (
               <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
@@ -189,10 +189,10 @@ export default function RegistrationForm({ params }) {
           </div>
           <div className="form-group">
             <label>Country / کشور محل سکونت</label>
-            <input 
-              type="text" className="form-control" 
-              value={formData.country} onChange={(e) => setFormData({...formData, country: e.target.value})}
-              required 
+            <input
+              type="text" className="form-control"
+              value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+              required
             />
           </div>
         </div>
@@ -200,18 +200,18 @@ export default function RegistrationForm({ params }) {
         <div className="grid md:grid-cols-2 gap-6 mt-4">
           <div className="form-group">
             <label>Education / مقطع تحصیلی</label>
-            <input 
+            <input
               type="text" className="form-control" placeholder="e.g. Master's"
-              value={formData.educationLevel} onChange={(e) => setFormData({...formData, educationLevel: e.target.value})}
-              required 
+              value={formData.educationLevel} onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })}
+              required
             />
           </div>
           <div className="form-group">
             <label>Field of Study / رشته تحصیلی</label>
-            <input 
-              type="text" className="form-control" 
-              value={formData.fieldOfStudy} onChange={(e) => setFormData({...formData, fieldOfStudy: e.target.value})}
-              required 
+            <input
+              type="text" className="form-control"
+              value={formData.fieldOfStudy} onChange={(e) => setFormData({ ...formData, fieldOfStudy: e.target.value })}
+              required
             />
           </div>
         </div>
@@ -221,33 +221,33 @@ export default function RegistrationForm({ params }) {
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
             Select multiple by holding Ctrl/Cmd
           </p>
-          <select 
-            multiple 
-            className="form-control" 
+          <select
+            multiple
+            className="form-control"
             style={{ height: '180px' }}
             onChange={handleSubjectChange}
             required
             value={formData.interestedSubjects}
           >
             {SUBJECTS.map((subject, idx) => (
-               <option key={idx} value={subject} style={{ padding: '0.5rem' }}>{subject}</option>
+              <option key={idx} value={subject} style={{ padding: '0.5rem' }}>{subject}</option>
             ))}
           </select>
           <p style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', marginTop: '0.5rem', fontWeight: 500 }}>
-             Selected: {formData.interestedSubjects.length} subject(s)
+            Selected: {formData.interestedSubjects.length} subject(s)
           </p>
         </div>
 
         <div className="form-group mt-8" style={{ background: 'var(--background)', padding: '1.5rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)' }}>
           <div className="checkbox-group">
-            <input 
+            <input
               type="checkbox" id="conductCheckbox"
-              checked={formData.agreedToCodeOfConduct} 
-              onChange={(e) => setFormData({...formData, agreedToCodeOfConduct: e.target.checked})}
+              checked={formData.agreedToCodeOfConduct}
+              onChange={(e) => setFormData({ ...formData, agreedToCodeOfConduct: e.target.checked })}
               required
             />
             <label htmlFor="conductCheckbox" style={{ fontSize: '0.95rem' }}>
-              I agree to the <a href="#" target="_blank" style={{ fontWeight: 600, textDecoration: 'underline' }}>Code of Conduct</a>.<br/>
+              I agree to the <a href="#" target="_blank" style={{ fontWeight: 600, textDecoration: 'underline' }}>Code of Conduct</a>.<br />
               <span className="dir-rtl" style={{ display: 'block', marginTop: '0.5rem' }}>
                 من با <a href="#" target="_blank" style={{ fontWeight: 600, textDecoration: 'underline' }}>آیین‌نامه رفتاری حلقه‌های مگس در بطری</a> موافقت می‌کنم.
               </span>
