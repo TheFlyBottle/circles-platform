@@ -104,13 +104,20 @@ function formatAuditLogRow(log) {
   `;
 }
 
+function logResendError(context, result) {
+  if (!result?.error) return false;
+
+  console.error(`${context} error:`, result.error);
+  return true;
+}
+
 export async function sendConfirmationEmail(toEmail, name, circleName) {
   try {
     if (!process.env.RESEND_API_KEY) {
       console.warn('Simulating confirmation email... missing RESEND_API_KEY');
       return true;
     }
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: SENDER_EMAIL,
       to: [toEmail],
       subject: `تایید ثبت‌نام: ${circleName}`,
@@ -132,6 +139,7 @@ export async function sendConfirmationEmail(toEmail, name, circleName) {
         </div>
       `
     });
+    if (logResendError('Email', result)) return false;
     return true;
   } catch (error) {
     console.error('Email error:', error);
@@ -145,7 +153,7 @@ export async function sendTelegramInviteEmail(toEmail, name, circleName, telegra
       console.warn('Simulating telegram email... missing RESEND_API_KEY');
       return true;
     }
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: SENDER_EMAIL,
       to: [toEmail],
       subject: `دعوت‌نامه گروه تلگرام: ${circleName}`,
@@ -180,6 +188,7 @@ export async function sendTelegramInviteEmail(toEmail, name, circleName, telegra
         </div>
       `
     });
+    if (logResendError('Telegram invite email', result)) return false;
     return true;
   } catch (error) {
     console.error('Email error:', error);
@@ -216,12 +225,13 @@ ${messageHtml}
       `;
 
     // Use Resend's batch API to send individual emails efficiently
-    await resend.batch.send(emails.map(email => ({
+    const result = await resend.batch.send(emails.map(email => ({
       from: SENDER_EMAIL,
       to: [email],
       subject: subject,
       html: htmlContent
     })));
+    if (logResendError('Custom email', result)) return false;
 
     return true;
   } catch (error) {

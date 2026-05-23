@@ -18,6 +18,8 @@ export default function CircleDetails({ params }) {
   const [deletingId, setDeletingId] = useState(null);
   const [confirmingMemberId, setConfirmingMemberId] = useState(null);
   const [deletingMemberId, setDeletingMemberId] = useState(null);
+  const [selectedSubmissionIds, setSelectedSubmissionIds] = useState([]);
+  const [telegramResendLoading, setTelegramResendLoading] = useState(false);
 
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
@@ -37,6 +39,9 @@ export default function CircleDetails({ params }) {
     setSubmissions(data.submissions);
     setTelegramLink(data.circle.telegramLink || '');
     setCapacityInput(data.circle.capacity || 0);
+    setSelectedSubmissionIds((current) => current.filter((submissionId) =>
+      data.submissions.some((submission) => submission._id === submissionId)
+    ));
   };
 
   const fetchData = useCallback(async () => {
@@ -213,6 +218,49 @@ export default function CircleDetails({ params }) {
     }
   };
 
+  const toggleSelectedSubmission = (submissionId) => {
+    setSelectedSubmissionIds((current) =>
+      current.includes(submissionId)
+        ? current.filter((id) => id !== submissionId)
+        : [...current, submissionId]
+    );
+  };
+
+  const toggleAllSubmissions = () => {
+    setSelectedSubmissionIds((current) =>
+      current.length === submissions.length ? [] : submissions.map((submission) => submission._id)
+    );
+  };
+
+  const handleResendTelegramInvites = async (mode) => {
+    setTelegramResendLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await fetch(`/api/admin/circles/${id}/telegram-invites`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode,
+          submissionIds: mode === 'selected' ? selectedSubmissionIds : []
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      const result = data.result;
+      setSuccess(`Telegram invites sent: ${result.sent}/${result.attempted}${result.failed ? ` (${result.failed} failed)` : ''}.`);
+      setSelectedSubmissionIds([]);
+      fetchData();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setTelegramResendLoading(false);
+    }
+  };
+
   if (loading) return <div className="text-center mt-8">Loading circle...</div>;
   if (!circle) return <div className="text-center mt-8">Circle not found</div>;
 
@@ -306,6 +354,36 @@ export default function CircleDetails({ params }) {
             {updateLoading ? 'Updating...' : 'Save & Send Invites'}
           </button>
         </form>
+
+        <div className="flex gap-3 items-center mt-4" style={{ flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => handleResendTelegramInvites('pending')}
+            disabled={telegramResendLoading || !circle.telegramLink}
+            style={{ padding: '0.55rem 0.9rem', fontSize: '0.9rem' }}
+          >
+            {telegramResendLoading ? 'Sending...' : 'Send Pending Invites'}
+          </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => handleResendTelegramInvites('selected')}
+            disabled={telegramResendLoading || !circle.telegramLink || selectedSubmissionIds.length === 0}
+            style={{ padding: '0.55rem 0.9rem', fontSize: '0.9rem' }}
+          >
+            Resend to Selected ({selectedSubmissionIds.length})
+          </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => handleResendTelegramInvites('all')}
+            disabled={telegramResendLoading || !circle.telegramLink || submissions.length === 0}
+            style={{ padding: '0.55rem 0.9rem', fontSize: '0.9rem' }}
+          >
+            Resend to All
+          </button>
+        </div>
       </div>
 
       <div className="card mb-8">
@@ -354,6 +432,14 @@ export default function CircleDetails({ params }) {
             <table className="data-table">
               <thead>
                 <tr>
+                  <th style={{ width: '40px' }}>
+                    <input
+                      type="checkbox"
+                      checked={submissions.length > 0 && selectedSubmissionIds.length === submissions.length}
+                      onChange={toggleAllSubmissions}
+                      aria-label="Select all members"
+                    />
+                  </th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Country</th>
@@ -367,6 +453,14 @@ export default function CircleDetails({ params }) {
               <tbody>
                 {submissions.map(sub => (
                   <tr key={sub._id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedSubmissionIds.includes(sub._id)}
+                        onChange={() => toggleSelectedSubmission(sub._id)}
+                        aria-label={`Select ${sub.fullName || sub.email}`}
+                      />
+                    </td>
                     <td style={{ fontWeight: 500 }}>{sub.fullName}</td>
                     <td style={{ wordBreak: 'break-all', maxWidth: '200px' }}>{sub.email}</td>
                     <td>{sub.country}</td>

@@ -1,21 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectMongo from '@/lib/mongodb';
 import Circle from '@/models/Circle';
-import Registration from '@/models/Registration';
 import Submission from '@/models/Submission';
-import { sendTelegramInviteEmail } from '@/lib/email';
-
-async function getApplicantCircleName(circle) {
-  if (circle.titleFa || circle.titleEn) {
-    return circle.titleFa || circle.titleEn;
-  }
-
-  const registration = await Registration.findOne({ circleId: circle._id })
-    .select('circleNameFa circleNameEn')
-    .lean();
-
-  return registration?.circleNameFa || registration?.circleNameEn || circle.name;
-}
+import { sendTelegramInvitesToSubmissions } from '@/lib/telegram-invites';
 
 // This endpoint conventionally would be hit by a cron service (like Vercel Cron or GitHub Actions)
 // A secure authentication mechanism (e.g. CRON_SECRET) should be checked in production to prevent abuse.
@@ -38,28 +25,14 @@ export async function GET(req) {
 
     for (const circle of circlesWithTelegram) {
       if (circle.telegramLink && circle.telegramLink.length > 5) {
-        const applicantCircleName = await getApplicantCircleName(circle);
-
         // Find unnotified submissions for this circle
         const pendingSubmissions = await Submission.find({
           circleId: circle._id,
           notified: false
         });
 
-        for (const sub of pendingSubmissions) {
-          const sent = await sendTelegramInviteEmail(
-            sub.email, 
-            sub.fullName, 
-            applicantCircleName,
-            circle.telegramLink
-          );
-          
-          if (sent) {
-            sub.notified = true;
-            await sub.save();
-            totalSent++;
-          }
-        }
+        const result = await sendTelegramInvitesToSubmissions(pendingSubmissions, circle, circle.telegramLink);
+        totalSent += result.sent;
       }
     }
 

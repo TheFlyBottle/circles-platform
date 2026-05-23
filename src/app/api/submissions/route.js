@@ -68,9 +68,18 @@ export async function POST(req) {
 
     // If a telegram link already exists, send it after the confirmation email.
     if (circle.telegramLink) {
-        await sendTelegramInviteEmail(data.email, data.fullName, circleName, circle.telegramLink);
-        submission.notified = true;
-        await submission.save();
+        const telegramInviteSent = await sendTelegramInviteEmail(data.email, data.fullName, circleName, circle.telegramLink);
+        if (!telegramInviteSent) {
+          console.warn('Circle signup was saved, but the Telegram invite email was not sent.', {
+            submissionId: submission._id,
+            email: data.email,
+            circleName
+          });
+        }
+        if (telegramInviteSent) {
+          submission.notified = true;
+          await submission.save();
+        }
     }
     
     // Auto-close circle if capacity is reached
