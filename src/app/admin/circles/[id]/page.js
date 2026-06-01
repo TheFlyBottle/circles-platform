@@ -208,7 +208,11 @@ export default function CircleDetails({ params }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      setEmailSuccess(`Email successfully sent to ${data.count} members!`);
+      setEmailSuccess(
+        data.failed
+          ? `Email sent to ${data.count}/${data.attempted} members. ${data.failed} failed.`
+          : `Email successfully sent to ${data.count} members!`
+      );
       setEmailSubject('');
       setEmailMessage('');
     } catch (err) {

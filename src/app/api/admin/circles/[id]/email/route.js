@@ -30,21 +30,12 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'No members found to email.' }, { status: 400 });
     }
 
-    const chunkSize = 50;
-    let failedChunks = 0;
+    const result = await sendCustomEmail(emails, subject, message, circle.name);
 
-    for (let i = 0; i < emails.length; i += chunkSize) {
-      const chunk = emails.slice(i, i + chunkSize);
-      const success = await sendCustomEmail(chunk, subject, message, circle.name);
-      if (!success) {
-         failedChunks++;
-         console.warn(`Failed to send email chunk starting at index ${i}`);
-      }
+    if (result.failed > 0 && result.failed === result.attempted) {
+      return NextResponse.json({ error: 'Failed to send emails. Check your Resend API configuration.' }, { status: 500 });
     }
 
-    if (failedChunks > 0 && failedChunks === Math.ceil(emails.length / chunkSize)) {
-        return NextResponse.json({ error: 'Failed to send emails. Check your Resend API configuration.' }, { status: 500 });
-    }
     await recordAdminAction(session, {
       action: 'circle.email_members',
       resourceType: 'circle',
@@ -52,12 +43,20 @@ export async function POST(req, { params }) {
       resourceLabel: circle.name,
       details: {
         subject,
-        recipientCount: emails.length,
-        failedChunks
+        recipientCount: result.attempted,
+        sent: result.sent,
+        failed: result.failed,
+        failedEmails: result.failedEmails
       }
     });
 
-    return NextResponse.json({ success: true, count: emails.length });
+    return NextResponse.json({
+      success: result.failed === 0,
+      count: result.sent,
+      attempted: result.attempted,
+      failed: result.failed,
+      failedEmails: result.failedEmails
+    });
   } catch (error) {
     console.error('Send Custom Email Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

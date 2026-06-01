@@ -6,6 +6,78 @@ const SENDER_EMAIL = 'The Fly Bottle <noreply@theflybottle.org>';
 const NEW_CIRCLE_NOTIFICATION_EMAILS = ['diba.makki@theflybottle.org', 'circleadmins@theflybottle.org'];
 const SUPER_ADMIN_EMAILS = ['diba.makki@theflybottle.org', 'm.ebrahimpour@theflybottle.org'];
 const FULL_SETUP_NOTIFICATION_EMAILS = ['production@theflybottle.org', 'diba.mak@gmail.com'];
+const RESEND_BATCH_SIZE = 100;
+const RESEND_REQUEST_INTERVAL_MS = 250;
+const RESEND_MAX_ATTEMPTS = 4;
+
+let resendRequestQueue = Promise.resolve();
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForResendSlot() {
+  const previousRequest = resendRequestQueue;
+  let releaseSlot;
+  resendRequestQueue = new Promise((resolve) => {
+    releaseSlot = resolve;
+  });
+
+  await previousRequest;
+  await sleep(RESEND_REQUEST_INTERVAL_MS);
+  releaseSlot();
+}
+
+function getErrorStatus(error) {
+  return error?.statusCode || error?.status || error?.response?.status;
+}
+
+function getRetryDelay(error, attempt) {
+  const retryAfter = error?.headers?.get?.('retry-after') || error?.response?.headers?.get?.('retry-after');
+  const retryAfterSeconds = Number(retryAfter);
+  if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+    return retryAfterSeconds * 1000;
+  }
+
+  return Math.min(1000 * 2 ** attempt, 8000);
+}
+
+function isRetryableResendError(error) {
+  const status = getErrorStatus(error);
+  if (status === 429) return true;
+  if (status >= 500 && status < 600) return true;
+
+  const message = String(error?.message || error?.name || '').toLowerCase();
+  return message.includes('rate limit') || message.includes('too many requests');
+}
+
+async function sendResendRequest(context, sendRequest) {
+  for (let attempt = 0; attempt < RESEND_MAX_ATTEMPTS; attempt++) {
+    await waitForResendSlot();
+
+    try {
+      const result = await sendRequest();
+      if (!result?.error) return result;
+
+      if (!isRetryableResendError(result.error) || attempt === RESEND_MAX_ATTEMPTS - 1) {
+        console.error(`${context} error:`, result.error);
+        return result;
+      }
+
+      console.warn(`${context} rate limited. Retrying attempt ${attempt + 2}/${RESEND_MAX_ATTEMPTS}.`);
+      await sleep(getRetryDelay(result.error, attempt));
+    } catch (error) {
+      if (!isRetryableResendError(error) || attempt === RESEND_MAX_ATTEMPTS - 1) {
+        throw error;
+      }
+
+      console.warn(`${context} request failed temporarily. Retrying attempt ${attempt + 2}/${RESEND_MAX_ATTEMPTS}.`, error);
+      await sleep(getRetryDelay(error, attempt));
+    }
+  }
+
+  return { error: new Error(`${context} failed after ${RESEND_MAX_ATTEMPTS} attempts.`) };
+}
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -117,7 +189,7 @@ export async function sendConfirmationEmail(toEmail, name, circleName) {
       console.warn('Simulating confirmation email... missing RESEND_API_KEY');
       return true;
     }
-    const result = await resend.emails.send({
+    const result = await sendResendRequest('Confirmation email', () => resend.emails.send({
       from: SENDER_EMAIL,
       to: [toEmail],
       subject: `تایید ثبت‌نام: ${circleName}`,
@@ -138,7 +210,7 @@ export async function sendConfirmationEmail(toEmail, name, circleName) {
           </div>
         </div>
       `
-    });
+    }));
     if (logResendError('Email', result)) return false;
     return true;
   } catch (error) {
@@ -153,7 +225,7 @@ export async function sendTelegramInviteEmail(toEmail, name, circleName, telegra
       console.warn('Simulating telegram email... missing RESEND_API_KEY');
       return true;
     }
-    const result = await resend.emails.send({
+    const result = await sendResendRequest('Telegram invite email', () => resend.emails.send({
       from: SENDER_EMAIL,
       to: [toEmail],
       subject: `دعوت‌نامه گروه تلگرام: ${circleName}`,
@@ -187,7 +259,7 @@ export async function sendTelegramInviteEmail(toEmail, name, circleName, telegra
           </div>
         </div>
       `
-    });
+    }));
     if (logResendError('Telegram invite email', result)) return false;
     return true;
   } catch (error) {
@@ -197,10 +269,18 @@ export async function sendTelegramInviteEmail(toEmail, name, circleName, telegra
 }
 
 export async function sendCustomEmail(emails, subject, messageHtml, circleName) {
+  const recipientEmails = [...new Set(emails.filter(Boolean))];
+
   try {
     if (!process.env.RESEND_API_KEY) {
-      console.warn('Simulating custom email... missing RESEND_API_KEY', { emails, subject });
-      return true;
+      console.warn('Simulating custom email... missing RESEND_API_KEY', { emails: recipientEmails, subject });
+      return {
+        success: true,
+        attempted: recipientEmails.length,
+        sent: recipientEmails.length,
+        failed: 0,
+        failedEmails: []
+      };
     }
 
     const htmlContent = `
@@ -224,19 +304,41 @@ ${messageHtml}
         </div>
       `;
 
-    // Use Resend's batch API to send individual emails efficiently
-    const result = await resend.batch.send(emails.map(email => ({
-      from: SENDER_EMAIL,
-      to: [email],
-      subject: subject,
-      html: htmlContent
-    })));
-    if (logResendError('Custom email', result)) return false;
+    const failedEmails = [];
+    let sent = 0;
 
-    return true;
+    for (let i = 0; i < recipientEmails.length; i += RESEND_BATCH_SIZE) {
+      const batchEmails = recipientEmails.slice(i, i + RESEND_BATCH_SIZE);
+      const result = await sendResendRequest('Custom email batch', () => resend.batch.send(batchEmails.map(email => ({
+        from: SENDER_EMAIL,
+        to: [email],
+        subject,
+        html: htmlContent
+      }))));
+
+      if (logResendError('Custom email batch', result)) {
+        failedEmails.push(...batchEmails);
+      } else {
+        sent += Array.isArray(result?.data) ? result.data.length : batchEmails.length;
+      }
+    }
+
+    return {
+      success: failedEmails.length === 0,
+      attempted: recipientEmails.length,
+      sent,
+      failed: failedEmails.length,
+      failedEmails
+    };
   } catch (error) {
     console.error('Custom email error:', error);
-    return false;
+    return {
+      success: false,
+      attempted: recipientEmails.length,
+      sent: 0,
+      failed: recipientEmails.length,
+      failedEmails: recipientEmails
+    };
   }
 }
 
@@ -256,7 +358,7 @@ export async function sendNewCircleRegistrationNotification(registration, origin
       return true;
     }
 
-    await resend.emails.send({
+    const result = await sendResendRequest('New circle registration notification', () => resend.emails.send({
       from: SENDER_EMAIL,
       to: NEW_CIRCLE_NOTIFICATION_EMAILS,
       subject: `New circle registration: ${circleName}`,
@@ -297,7 +399,8 @@ export async function sendNewCircleRegistrationNotification(registration, origin
           </div>
         </div>
       `
-    });
+    }));
+    if (logResendError('New circle registration notification', result)) return false;
 
     return true;
   } catch (error) {
@@ -317,7 +420,7 @@ export async function sendCircleSetupFormEmail(toEmail, name, circleName, setupU
       return true;
     }
 
-    await resend.emails.send({
+    const result = await sendResendRequest('Circle setup form email', () => resend.emails.send({
       from: SENDER_EMAIL,
       to: [toEmail],
       subject: `فرم تکمیل اطلاعات حلقه: ${circleName}`,
@@ -349,7 +452,8 @@ export async function sendCircleSetupFormEmail(toEmail, name, circleName, setupU
           </div>
         </div>
       `
-    });
+    }));
+    if (logResendError('Circle setup form email', result)) return false;
 
     return true;
   } catch (error) {
@@ -371,7 +475,7 @@ export async function sendCircleCreatedFromSetupEmail(registration, circle, circ
       return true;
     }
 
-    await resend.emails.send({
+    const result = await sendResendRequest('Circle created from setup email', () => resend.emails.send({
       from: SENDER_EMAIL,
       to: NEW_CIRCLE_NOTIFICATION_EMAILS,
       subject: `Circle created from follow-up form: ${circle.name}`,
@@ -421,7 +525,8 @@ export async function sendCircleCreatedFromSetupEmail(registration, circle, circ
           </div>
         </div>
       `
-    });
+    }));
+    if (logResendError('Circle created from setup email', result)) return false;
 
     return true;
   } catch (error) {
@@ -446,7 +551,7 @@ export async function sendFullCircleSetupNotificationEmail(registration, circle,
       return true;
     }
 
-    await resend.emails.send({
+    const result = await sendResendRequest('Full circle setup notification email', () => resend.emails.send({
       from: SENDER_EMAIL,
       to: FULL_SETUP_NOTIFICATION_EMAILS,
       subject: `Full circle setup details: ${circleName}`,
@@ -517,7 +622,8 @@ export async function sendFullCircleSetupNotificationEmail(registration, circle,
           </div>
         </div>
       `
-    });
+    }));
+    if (logResendError('Full circle setup notification email', result)) return false;
 
     return true;
   } catch (error) {
@@ -538,7 +644,7 @@ export async function sendAuditLogDigestEmail(logs) {
       return true;
     }
 
-    await resend.emails.send({
+    const result = await sendResendRequest('Audit log digest email', () => resend.emails.send({
       from: SENDER_EMAIL,
       to: SUPER_ADMIN_EMAILS,
       subject: `Admin activity log reached ${logs.length} entries`,
@@ -566,7 +672,8 @@ export async function sendAuditLogDigestEmail(logs) {
           </div>
         </div>
       `
-    });
+    }));
+    if (logResendError('Audit log digest email', result)) return false;
 
     return true;
   } catch (error) {
