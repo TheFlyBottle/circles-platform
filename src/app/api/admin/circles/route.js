@@ -28,9 +28,12 @@ export async function POST(req) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const data = await req.json();
-    const { name, slug, status, capacity } = data;
+    const { name, titleFa, slug, status, capacity } = data;
+    const trimmedName = typeof name === 'string' ? name.trim() : '';
+    const trimmedSlug = typeof slug === 'string' ? slug.trim() : '';
+    const trimmedTitleFa = typeof titleFa === 'string' ? titleFa.trim() : '';
 
-    if (!name || !slug) {
+    if (!trimmedName || !trimmedSlug) {
       return NextResponse.json({ error: 'Name and slug are required.' }, { status: 400 });
     }
 
@@ -39,14 +42,15 @@ export async function POST(req) {
     }
 
     await connectMongo();
-    const existingCircle = await Circle.findOne({ slug });
+    const existingCircle = await Circle.findOne({ slug: trimmedSlug });
     if (existingCircle) {
       return NextResponse.json({ error: 'Slug already exists.' }, { status: 400 });
     }
 
     const newCircle = await Circle.create({
-      name,
-      slug,
+      name: trimmedName,
+      titleFa: trimmedTitleFa,
+      slug: trimmedSlug,
       status: status || 'active',
       capacity: capacity ? parseInt(capacity) : 0,
       telegramLink: ''
@@ -58,6 +62,7 @@ export async function POST(req) {
       resourceLabel: newCircle.name,
       details: {
         slug: newCircle.slug,
+        titleFa: newCircle.titleFa,
         status: newCircle.status,
         capacity: newCircle.capacity
       }

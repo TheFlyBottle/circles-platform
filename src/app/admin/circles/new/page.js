@@ -7,7 +7,7 @@ import Link from 'next/link';
 export default function NewCircle() {
   const router = useRouter();
   const [formData, setFormData] = useState({ 
-    name: '', slug: '', status: 'active', capacity: 0 
+    name: '', titleFa: '', slug: '', status: 'active', capacity: 0 
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -60,6 +60,18 @@ export default function NewCircle() {
             type="text" className="form-control" 
             value={formData.name} onChange={handleNameChange}
             required placeholder="e.g. History Seminar Fall 2026"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Circle Name (Farsi)</label>
+          <input
+            type="text"
+            className="form-control dir-rtl"
+            dir="rtl"
+            value={formData.titleFa}
+            onChange={(e) => setFormData({ ...formData, titleFa: e.target.value })}
+            placeholder="Circle name in Farsi"
           />
         </div>
         
