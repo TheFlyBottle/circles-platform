@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { UploadButton } from '@/lib/uploadthing';
 
@@ -231,7 +232,20 @@ export default function CircleSetupForm({ params, searchParams }) {
               />
               {promoAssetUrl && (
                 <div style={{ marginTop: '0.5rem' }}>
-                  <img src={promoAssetUrl} alt="Preview" style={{ maxWidth: '150px', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)' }} />
+                  <Image
+                    src={promoAssetUrl}
+                    alt="Preview"
+                    width={150}
+                    height={150}
+                    style={{
+                      width: 'auto',
+                      height: 'auto',
+                      maxWidth: '150px',
+                      maxHeight: '150px',
+                      borderRadius: 'var(--border-radius)',
+                      border: '1px solid var(--border-color)'
+                    }}
+                  />
                   <button 
                     type="button" 
                     onClick={() => setPromoAssetUrl('')}

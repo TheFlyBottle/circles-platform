@@ -1,4 +1,5 @@
 import { Lora, Vazirmatn } from 'next/font/google';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -30,9 +31,11 @@ export default function RootLayout({ children }) {
           <header className="main-header" style={{ marginBottom: '3rem', paddingTop: '1rem' }}>
             <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'inherit' }}>
-                <img
+                <Image
                   src="/circles-bg.png"
                   alt="Logo"
+                  width={48}
+                  height={48}
                   style={{
                     width: '48px',
                     height: '48px',
