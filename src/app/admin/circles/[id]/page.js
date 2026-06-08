@@ -23,6 +23,7 @@ export default function CircleDetails({ params }) {
 
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
+  const [emailRecipientMode, setEmailRecipientMode] = useState('all');
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailSuccess, setEmailSuccess] = useState('');
   const [emailError, setEmailError] = useState('');
@@ -199,10 +200,19 @@ export default function CircleDetails({ params }) {
     setEmailSuccess('');
 
     try {
+      if (emailRecipientMode === 'selected' && selectedSubmissionIds.length === 0) {
+        throw new Error('Select at least one member to email.');
+      }
+
       const res = await fetch(`/api/admin/circles/${id}/email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject: emailSubject, message: emailMessage })
+        body: JSON.stringify({
+          subject: emailSubject,
+          message: emailMessage,
+          mode: emailRecipientMode,
+          submissionIds: emailRecipientMode === 'selected' ? selectedSubmissionIds : []
+        })
       });
 
       const data = await res.json();
@@ -215,6 +225,7 @@ export default function CircleDetails({ params }) {
       );
       setEmailSubject('');
       setEmailMessage('');
+      if (emailRecipientMode === 'selected') setSelectedSubmissionIds([]);
     } catch (err) {
       setEmailError(err.message);
     } finally {
@@ -396,13 +407,38 @@ export default function CircleDetails({ params }) {
       <div className="card mb-8">
         <h3 className="font-serif" style={{ marginBottom: '1rem', fontSize: '1.25rem' }}>Send Mass Email to Members</h3>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-          Send a custom email to all {submissions.length} registered members of this circle.
+          Send a custom email to all members or only the selected members in the table below.
         </p>
 
         {emailError && <div className="alert alert-error mb-4">{emailError}</div>}
         {emailSuccess && <div className="alert alert-success mb-4">{emailSuccess}</div>}
 
         <form onSubmit={handleSendEmail} className="flex flex-col gap-4">
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Recipients</label>
+            <div className="flex gap-4 items-center" style={{ flexWrap: 'wrap', color: 'var(--text-secondary)' }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="emailRecipientMode"
+                  value="all"
+                  checked={emailRecipientMode === 'all'}
+                  onChange={() => setEmailRecipientMode('all')}
+                />
+                All members ({submissions.length})
+              </label>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="emailRecipientMode"
+                  value="selected"
+                  checked={emailRecipientMode === 'selected'}
+                  onChange={() => setEmailRecipientMode('selected')}
+                />
+                Selected members ({selectedSubmissionIds.length})
+              </label>
+            </div>
+          </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label>Subject</label>
             <input
@@ -423,8 +459,12 @@ export default function CircleDetails({ params }) {
             />
           </div>
           <div className="flex justify-end mt-2">
-            <button type="submit" className="btn-primary" disabled={emailLoading || submissions.length === 0}>
-              {emailLoading ? 'Sending...' : `Send to ${submissions.length} Members`}
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={emailLoading || submissions.length === 0 || (emailRecipientMode === 'selected' && selectedSubmissionIds.length === 0)}
+            >
+              {emailLoading ? 'Sending...' : `Send to ${emailRecipientMode === 'selected' ? selectedSubmissionIds.length : submissions.length} Members`}
             </button>
           </div>
         </form>
