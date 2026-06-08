@@ -330,6 +330,9 @@ export default function CircleDetails({ params }) {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <a href={`/api/admin/circles/${id}/export`} className="btn-primary" download>
+            Download Excel
+          </a>
           <Link href="/admin/circles" className="btn-secondary">
             Back to Circles
           </Link>
