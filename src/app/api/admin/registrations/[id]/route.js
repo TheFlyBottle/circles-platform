@@ -19,7 +19,7 @@ export async function GET(req, { params }) {
     }
 
     await connectMongo();
-    
+
     const registration = await Registration.findById(id).lean();
     if (!registration) return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
 
@@ -40,19 +40,19 @@ export async function PUT(req, { params }) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
     }
-    
+
     if (!['pending', 'reviewed', 'approved', 'rejected'].includes(status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
     await connectMongo();
-    
+
     const registration = await Registration.findById(id);
     if (!registration) return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
     const previousStatus = registration.status;
 
     if (registration.status === 'approved' && status === 'approved') {
-       return NextResponse.json({ error: 'Registration is already approved.' }, { status: 400 });
+      return NextResponse.json({ error: 'Registration is already approved.' }, { status: 400 });
     }
 
     registration.status = status;

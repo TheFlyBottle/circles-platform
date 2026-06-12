@@ -413,48 +413,91 @@ export async function sendCircleCreatedFromSetupEmail(registration, circle, circ
       return true;
     }
 
+    const setup = registration.setupDetails || {};
+
     const result = await sendResendRequest('Circle created from setup email', () => resend.emails.send({
       from: SENDER_EMAIL,
       to: NEW_CIRCLE_NOTIFICATION_EMAILS,
       subject: `Circle created from follow-up form: ${circle.name}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 680px; margin: 0 auto; background-color: #fdfbf7; padding: 32px 20px; color: #2d2d2d; line-height: 1.6;">
+        <div style="font-family: Arial, sans-serif; max-width: 720px; margin: 0 auto; background-color: #fdfbf7; padding: 32px 20px; color: #2d2d2d; line-height: 1.6;">
           <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 12px; overflow: hidden;">
             <div style="padding: 28px;">
               <h2 style="color: #4a5d4e; margin: 0 0 12px; font-size: 22px;">Follow-up form submitted</h2>
-              <p style="font-size: 15px; margin: 0 0 24px;">The host completed the follow-up form and a new circle was created.</p>
+              <p style="font-size: 15px; margin: 0 0 24px;">The host completed the follow-up form and a new circle was created successfully.</p>
 
-              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <h3 style="color: #4a5d4e; border-bottom: 1px solid #e5e0d8; padding-bottom: 8px; margin-top: 32px; font-size: 18px;">Basic Information</h3>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
                 ${formatRegistrationField('Circle name', circle.name)}
                 <tr>
                   <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #5a5a5a; width: 35%; vertical-align: top;">Circle link</td>
                   <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">
-                    <a href="${escapeHtml(circleUrl)}" target="_blank" style="color: #4a5d4e;">${escapeHtml(circleUrl)}</a>
+                    <a href="${escapeHtml(circleUrl)}" target="_blank" style="color: #4a5d4e; font-weight: bold;">${escapeHtml(circleUrl)}</a>
                   </td>
                 </tr>
                 ${formatRegistrationField('Capacity', circle.capacity === 0 ? 'Unlimited' : circle.capacity)}
+                ${formatRegistrationField('Capacity note', setup.capacityNote)}
                 ${formatRegistrationField('Organizer name', registration.fullName)}
                 ${formatRegistrationField('Organizer email', registration.email)}
-                ${registration.setupDetails?.promoAssetUrl ? `
+                ${formatRegistrationField('Telegram ID', registration.telegramId)}
+                ${formatRegistrationField('Phone number', registration.phoneNumber)}
+              </table>
+
+              <h3 style="color: #4a5d4e; border-bottom: 1px solid #e5e0d8; padding-bottom: 8px; margin-top: 32px; font-size: 18px;">Circle Focus & Plan</h3>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
+                ${formatRegistrationField('Subjects', setup.subjects)}
+                ${formatRegistrationField('Languages', setup.conversationLanguages)}
+                ${formatRegistrationField('Prerequisites', setup.prerequisites)}
+                ${formatRegistrationField('Circle focus', setup.circleFocus)}
+                ${formatRegistrationField('Session activities', setup.sessionActivities)}
+                ${formatRegistrationField('Schedule plan', setup.schedulePlan)}
+              </table>
+
+              <h3 style="color: #4a5d4e; border-bottom: 1px solid #e5e0d8; padding-bottom: 8px; margin-top: 32px; font-size: 18px;">Host & Promotion</h3>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
+                ${formatRegistrationField('Show host name?', setup.showHostName)}
+                ${formatRegistrationField('Promote on social?', setup.promoteOnSocial)}
+                ${formatRegistrationField('Social link', setup.socialLink)}
+                ${formatRegistrationField('Needed support', setup.neededSupport)}
+                ${setup.promoAssetUrl ? `
                   <tr>
                     <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #5a5a5a; width: 35%; vertical-align: top;">Promotion image</td>
                     <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">
-                      <a href="${escapeHtml(registration.setupDetails.promoAssetUrl)}" target="_blank" style="color: #4a5d4e;">View image</a>
+                      <a href="${escapeHtml(setup.promoAssetUrl)}" target="_blank" style="color: #4a5d4e;">View image</a>
                     </td>
                   </tr>
                 ` : ''}
-                ${registration.setupDetails?.shareFile?.url ? `
+                ${setup.shareFile?.url ? `
                   <tr>
                     <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #5a5a5a; width: 35%; vertical-align: top;">Syllabus/Shared file</td>
                     <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">
-                      <a href="${escapeHtml(registration.setupDetails.shareFile.url)}" target="_blank" style="color: #4a5d4e;">View file (${escapeHtml(registration.setupDetails.shareFile.name || 'document')})</a>
+                      <a href="${escapeHtml(setup.shareFile.url)}" target="_blank" style="color: #4a5d4e;">View file (${escapeHtml(setup.shareFile.name || 'document')})</a>
                     </td>
                   </tr>
                 ` : ''}
               </table>
 
-              <div style="text-align: center; margin: 30px 0 8px;">
-                <a href="${escapeHtml(circleUrl)}" style="background-color: #4a5d4e; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 24px; font-weight: bold; display: inline-block;">
+              <h3 style="color: #4a5d4e; border-bottom: 1px solid #e5e0d8; padding-bottom: 8px; margin-top: 32px; font-size: 18px;">Public Introduction</h3>
+              <div style="white-space: pre-wrap; background-color: #fdfbf7; border: 1px solid #e5e0d8; border-radius: 8px; padding: 14px; font-size: 14px; margin-bottom: 24px;">${escapeHtml(setup.publicIntroduction || 'Not provided')}</div>
+
+              <h3 style="color: #4a5d4e; border-bottom: 1px solid #e5e0d8; padding-bottom: 8px; margin-top: 32px; font-size: 18px;">Original Registration Details</h3>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
+                ${formatRegistrationField('Country', registration.country)}
+                ${formatRegistrationField('Workplace/School', registration.workplaceOrEducation)}
+                ${formatRegistrationField('Education level', registration.educationLevel)}
+                ${formatRegistrationField('Previous organizer', registration.previousOrganizer ? 'Yes' : 'No')}
+                ${formatRegistrationField('Expected registration', registration.expectedRegistrationDate)}
+                ${formatRegistrationField('Expected start', registration.expectedSessionStartDate)}
+                ${formatRegistrationField('Expected duration', registration.expectedDuration)}
+              </table>
+
+              <div style="margin-top: 24px;">
+                <h4 style="color: #4a5d4e; margin: 0 0 8px; font-size: 15px;">Original Description</h4>
+                <div style="white-space: pre-wrap; background-color: #fdfbf7; border: 1px solid #e5e0d8; border-radius: 8px; padding: 14px; font-size: 14px;">${escapeHtml(registration.description || 'Not provided')}</div>
+              </div>
+
+              <div style="text-align: center; margin: 40px 0 8px;">
+                <a href="${escapeHtml(circleUrl)}" style="background-color: #4a5d4e; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 28px; font-weight: bold; display: inline-block;">
                   Open circle registration form
                 </a>
               </div>
