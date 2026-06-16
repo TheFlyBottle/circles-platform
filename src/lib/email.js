@@ -4,6 +4,7 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_test123');
 
 const SENDER_EMAIL = 'The Fly Bottle <noreply@theflybottle.org>';
 const NEW_CIRCLE_NOTIFICATION_EMAILS = ['diba.makki@theflybottle.org', 'circleadmins@theflybottle.org'];
+const CIRCLE_CLOSED_NOTIFICATION_EMAILS = ['tima@theflybottle.org'];
 const SUPER_ADMIN_EMAILS = ['diba.makki@theflybottle.org', 'm.ebrahimpour@theflybottle.org'];
 const RESEND_BATCH_SIZE = 100;
 const RESEND_REQUEST_INTERVAL_MS = 250;
@@ -511,6 +512,65 @@ export async function sendCircleCreatedFromSetupEmail(registration, circle, circ
     return true;
   } catch (error) {
     console.error('Circle created from setup email error:', error);
+    return false;
+  }
+}
+
+export async function sendCircleClosedNotificationEmail(circle, registrationCount, origin) {
+  try {
+    const circleName = circle.titleEn || circle.titleFa || circle.name || 'Circle';
+    const circleUrl = origin && circle.slug ? `${origin}/circles/${circle.slug}` : '';
+
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Simulating circle closed notification email... missing RESEND_API_KEY', {
+        to: CIRCLE_CLOSED_NOTIFICATION_EMAILS,
+        circleName,
+        slug: circle.slug,
+        capacity: circle.capacity,
+        registrationCount,
+        circleUrl
+      });
+      return true;
+    }
+
+    const result = await sendResendRequest('Circle closed notification email', () => resend.emails.send({
+      from: SENDER_EMAIL,
+      to: CIRCLE_CLOSED_NOTIFICATION_EMAILS,
+      subject: `Circle closed after reaching capacity: ${circleName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 680px; margin: 0 auto; background-color: #fdfbf7; padding: 32px 20px; color: #2d2d2d; line-height: 1.6;">
+          <div style="background-color: #ffffff; border: 1px solid #e5e0d8; border-radius: 12px; overflow: hidden;">
+            <div style="padding: 28px;">
+              <h2 style="color: #4a5d4e; margin: 0 0 12px; font-size: 22px;">A circle has closed</h2>
+              <p style="font-size: 15px; margin: 0 0 24px;">This circle reached its registration limit and its status was automatically changed to closed.</p>
+
+              <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                ${formatRegistrationField('Circle name', circleName)}
+                ${formatRegistrationField('Slug', circle.slug)}
+                ${formatRegistrationField('Status', 'closed')}
+                ${formatRegistrationField('Capacity', circle.capacity)}
+                ${formatRegistrationField('Current registrations', registrationCount)}
+                ${circleUrl ? `
+                  <tr>
+                    <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #5a5a5a; width: 35%; vertical-align: top;">Circle link</td>
+                    <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">
+                      <a href="${escapeHtml(circleUrl)}" target="_blank" style="color: #4a5d4e; font-weight: bold;">${escapeHtml(circleUrl)}</a>
+                    </td>
+                  </tr>
+                ` : ''}
+              </table>
+
+              <p style="font-size: 15px; margin: 24px 0 0;">Please update this circle's status on the other website as well.</p>
+            </div>
+          </div>
+        </div>
+      `
+    }));
+    if (logResendError('Circle closed notification email', result)) return false;
+
+    return true;
+  } catch (error) {
+    console.error('Circle closed notification email error:', error);
     return false;
   }
 }

@@ -4,7 +4,7 @@ import connectMongo from '@/lib/mongodb';
 import Circle from '@/models/Circle';
 import Registration from '@/models/Registration';
 import Submission from '@/models/Submission';
-import { sendConfirmationEmail, sendTelegramInviteEmail } from '@/lib/email';
+import { sendCircleClosedNotificationEmail, sendConfirmationEmail, sendTelegramInviteEmail } from '@/lib/email';
 
 async function getApplicantCircleName(circle) {
   if (circle.titleFa || circle.titleEn) {
@@ -86,8 +86,24 @@ export async function POST(req) {
     if (circle.capacity > 0) {
         const newCount = await Submission.countDocuments({ circleId: circle._id });
         if (newCount >= circle.capacity) {
-            circle.status = 'closed';
-            await circle.save();
+            const closedCircle = await Circle.findOneAndUpdate(
+              { _id: circle._id, status: { $ne: 'closed' } },
+              { $set: { status: 'closed' } },
+              { new: true }
+            );
+
+            if (closedCircle) {
+              const origin = req.headers.get('origin') || '';
+              const closedNotificationSent = await sendCircleClosedNotificationEmail(closedCircle, newCount, origin);
+              if (!closedNotificationSent) {
+                console.warn('Circle reached capacity and was closed, but the closure notification email was not sent.', {
+                  circleId: closedCircle._id,
+                  circleName: closedCircle.name,
+                  capacity: closedCircle.capacity,
+                  registrationCount: newCount
+                });
+              }
+            }
         }
     }
 
