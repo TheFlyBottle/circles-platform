@@ -403,10 +403,13 @@ export async function sendCircleSetupFormEmail(toEmail, name, circleName, setupU
 
 export async function sendCircleCreatedFromSetupEmail(registration, circle, circleUrl) {
   try {
+    const circleNameFa = registration.circleNameFa || circle.titleFa;
+
     if (!process.env.RESEND_API_KEY) {
       console.warn('Simulating circle created from setup email... missing RESEND_API_KEY', {
         to: NEW_CIRCLE_NOTIFICATION_EMAILS,
         circleName: circle.name,
+        circleNameFa,
         circleUrl,
         organizer: registration.fullName,
         email: registration.email
@@ -430,6 +433,7 @@ export async function sendCircleCreatedFromSetupEmail(registration, circle, circ
               <h3 style="color: #4a5d4e; border-bottom: 1px solid #e5e0d8; padding-bottom: 8px; margin-top: 32px; font-size: 18px;">Basic Information</h3>
               <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
                 ${formatRegistrationField('Circle name', circle.name)}
+                ${formatRegistrationField('Circle name (Persian)', circleNameFa)}
                 <tr>
                   <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #5a5a5a; width: 35%; vertical-align: top;">Circle link</td>
                   <td style="padding: 10px 12px; border-bottom: 1px solid #e5e0d8; color: #2d2d2d; vertical-align: top;">
